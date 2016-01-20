@@ -29,9 +29,26 @@ public class MainActivity extends Activity {
 
         Spot bar = new Spot();
         bar.setName("Birrificio Lambrate");
+        bar.setLongitude(45.28476);
+        bar.setLatitude(9.14034);
+        bar.setAddress("via Golgi, Milano");
+
+        Spot bapt = new Spot();
+        bapt.setName("Jet Café");
+        bapt.setLongitude(45.47251790000001);
+        bapt.setLatitude(9.23656619999997);
+        bapt.setAddress("via Tajani, 11, Milano");
+
+        Spot duomo = new Spot();
+        duomo.setName("Duomo");
+        duomo.setLongitude(45.4640976);
+        duomo.setLatitude(9.191926500000022);
+        duomo.setAddress("Piazza del Duomo, Milano, Italy");
 
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(bar);
+        spotDB.insert(bapt);
+        spotDB.insert(duomo);
 
         List<Spot> barList = spotDB.getAll();
         int size = barList.size();

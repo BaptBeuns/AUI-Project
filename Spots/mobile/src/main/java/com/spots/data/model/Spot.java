@@ -24,7 +24,7 @@ public class Spot {
 		setAddress(new String());
 		setFilterWeek(NO_FILTER);
 		setFilterWeekEnd(NO_FILTER);
-		setFilterWeekEnd(NO_FILTER);
+		setFilterEvening(NO_FILTER);
 	}
 
 	public void setId(int id) {
