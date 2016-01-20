@@ -2,18 +2,22 @@ package com.spots;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.spots.data.database.BaseDB;
 import com.spots.data.database.SpotDB;
 import com.spots.data.model.Spot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -25,8 +29,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mCtx = this;
+    }
 
+    public void addTestSpots(View view) {
         Spot bar = new Spot();
         bar.setName("Birrificio Lambrate");
         bar.setLongitude(45.28476);
@@ -49,17 +54,11 @@ public class MainActivity extends Activity {
         spotDB.insert(bar);
         spotDB.insert(bapt);
         spotDB.insert(duomo);
-
-        List<Spot> barList = spotDB.getAll();
-        int size = barList.size();
-        Log.d("MainActivity : TEST SIZE ",Integer.toString(size));
     }
 
-    public void clickFunction(View view) {
-        String textToPrint = "Sale pute";
-
-        TextView t=(TextView)findViewById(R.id.text_test);
-        t.setText(textToPrint);
+    public void goToSaveSpots(View view) {
+        Intent intent = new Intent(this, SavedPlaces.class);
+        startActivity(intent);
     }
 
     @Override
