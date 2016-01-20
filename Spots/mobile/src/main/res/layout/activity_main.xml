@@ -11,27 +11,26 @@
 
 
         <Button
-            android:layout_width="500dp"
+            android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="ADD TESTS SPOTS"
             android:onClick="addTestSpots"
             />
 
         <Button
-            android:layout_width="500dp"
+            android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:paddingTop="60dp"
             android:text="MY SPOTS"
             android:onClick="goToSaveSpots"
-            />
-<!--
-        <TextView
-            android:id="@+id/text_test"
-            android:layout_width="500dp"
-            android:layout_height="60dp"
-            android:text="Before"
-            />
-    -->
+            android:layout_gravity="center" />
+        <!--
+                <TextView
+                    android:id="@+id/text_test"
+                    android:layout_width="500dp"
+                    android:layout_height="60dp"
+                    android:text="Before"
+                    />
+            -->
 
 
 
