@@ -13,7 +13,7 @@ public abstract class BaseDB {
     protected SpotsSQLiteDB mDbHelper = null;
     protected Context mCtx;
 
-    public BaseDAO(Context pContext) {
+    public BaseDB(Context pContext) {
         this.mDbHelper = new SpotsSQLiteDB(pContext, NOM_BDD, null, VERSION_BDD);
         this.mCtx = pContext;
     }

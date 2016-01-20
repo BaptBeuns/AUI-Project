@@ -4,6 +4,10 @@ import com.spots.data.model.Spot;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpotDB extends BaseDB {
 
@@ -36,7 +40,7 @@ public class SpotDB extends BaseDB {
 	private static final int NUM_COL_FILTER_WEEKEND = 6;
 	private static final int NUM_COL_FILTER_EVENING = 7;
 
-	static final String CREATE_TABLE_STATEMENT = ID_FIELD_NAME + " " + ID_FIELD_TYPE
+	public static final String CREATE_TABLE_STATEMENT = ID_FIELD_NAME + " " + ID_FIELD_TYPE
             + ", " + LONGITUDE_FIELD_NAME + " " + LONGITUDE_FIELD_TYPE
             + ", " + LATITUDE_FIELD_NAME + " " + LATITUDE_FIELD_TYPE
             + ", " + NAME_FIELD_NAME + " " + NAME_FIELD_TYPE
@@ -45,33 +49,33 @@ public class SpotDB extends BaseDB {
             + ", " + FILTER_WEEKEND_FIELD_NAME + " " + FILTER_WEEKEND_FIELD_TYPE
             + ", " + FILTER_EVENING_FIELD_NAME + " " + FILTER_EVENING_FIELD_TYPE;
 
-	public CategoryDB(Context context) {
+	public SpotDB(Context context) {
 		super(context);
 		this.mDb = this.open();
 	}
 
 	public long insert(Spot spot) {
 		ContentValues values = new ContentValues();
-		values.put(LONGITUDE_FIELD_NAME, spot.longitude);
-		values.put(LATITUDE_FIELD_NAME, spot.latitude);
-		values.put(NAME_FIELD_NAME, spot.name);
-		values.put(ADDRESS_FIELD_NAME, spot.address);
-		values.put(FILTER_WEEK_FIELD_NAME, spot.filterNotifyWeek);
-		values.put(FILTER_WEEKEND_FIELD_NAME, spot.filterNotifyWeekEnd);
-		values.put(FILTER_EVENING_FIELD_NAME, spot.filterNotifyEvening);
+		values.put(LONGITUDE_FIELD_NAME, spot.getLongitude());
+		values.put(LATITUDE_FIELD_NAME, spot.getLatitude());
+		values.put(NAME_FIELD_NAME, spot.getName());
+		values.put(ADDRESS_FIELD_NAME, spot.getAddress());
+		values.put(FILTER_WEEK_FIELD_NAME, spot.getFilterWeek());
+		values.put(FILTER_WEEKEND_FIELD_NAME, spot.getFilterWeekEnd());
+		values.put(FILTER_EVENING_FIELD_NAME, spot.getFilterEvening());
 
 		return mDb.insert(TABLE_NAME, null, values);
 	}
 
 	public int update(int id, Spot spot) {
 		ContentValues values = new ContentValues();
-		values.put(LONGITUDE_FIELD_NAME, spot.longitude);
-		values.put(LATITUDE_FIELD_TYPE, spot.latitude);
-		values.put(NAME_FIELD_NAME, spot.name);
-		values.put(ADDRESS_FIELD_NAME, spot.address);
-		values.put(FILTER_WEEK_FIELD_NAME, spot.filterNotifyWeek);
-		values.put(FILTER_WEEKEND_FIELD_NAME, spot.filterNotifyWeekEnd);
-		values.put(FILTER_EVENING_FIELD_NAME, spot.filterNotifyEvening);
+		values.put(LONGITUDE_FIELD_NAME, spot.getLongitude());
+		values.put(LATITUDE_FIELD_TYPE, spot.getLatitude());
+		values.put(NAME_FIELD_NAME, spot.getName());
+		values.put(ADDRESS_FIELD_NAME, spot.getAddress());
+		values.put(FILTER_WEEK_FIELD_NAME, spot.getFilterWeek());
+		values.put(FILTER_WEEKEND_FIELD_NAME, spot.getFilterWeekEnd());
+		values.put(FILTER_EVENING_FIELD_NAME, spot.getFilterEvening());
 
 		return mDb.update(TABLE_NAME, values, ID_FIELD_NAME + " = " + id, null);
 	}
@@ -86,6 +90,38 @@ public class SpotDB extends BaseDB {
         return cursorToSpot(c);
     }
 
+    public List<Spot> getAll(){
+        Cursor c = super.mDb.query(TABLE_NAME, null , null, null, null, null, null);
+        return cursorToListSpot(c);
+    }
+
+    private List<Spot> cursorToListSpot(Cursor c){
+        if (c.getCount() == 0)
+            return null;
+
+        List<Spot> listSpot = new ArrayList<Spot>();
+        listSpot.clear();
+
+        if (c.moveToFirst()) {
+            do {
+                Spot spot = new Spot();
+
+                spot.setId(c.getInt(NUM_COL_ID));
+                spot.setLongitude(c.getDouble(NUM_COL_LONGITUDE));
+                spot.setLatitude(c.getDouble(NUM_COL_LATITUDE));
+                spot.setName(c.getString(NUM_COL_NAME));
+                spot.setAddress(c.getString(NUM_COL_ADDRESS));
+                spot.setFilterWeek(c.getInt(NUM_COL_FILTER_WEEK) > 0);
+                spot.setFilterWeekEnd(c.getInt(NUM_COL_FILTER_WEEKEND) > 0);
+                spot.setFilterEvening(c.getInt(NUM_COL_FILTER_EVENING) > 0);
+
+                listSpot.add(spot);
+            } while (c.moveToNext());
+        }
+        c.close();
+        return listSpot;
+    }
+
     private Spot cursorToSpot(Cursor c) {
         if (c.getCount() == 0)
             return null;
@@ -95,12 +131,12 @@ public class SpotDB extends BaseDB {
 
         spot.setId(c.getInt(NUM_COL_ID));
         spot.setLongitude(c.getDouble(NUM_COL_LONGITUDE));
-        spot.setLatitude(c.getDouble(NUM_COL_LATITUDE))
+        spot.setLatitude(c.getDouble(NUM_COL_LATITUDE));
         spot.setName(c.getString(NUM_COL_NAME));
         spot.setAddress(c.getString(NUM_COL_ADDRESS));
-        spot.setFilterWeek(c.getBoolean(NUM_COL_FILTER_WEEK));
-        spot.setFilterWeekEnd(c.getBoolean(NUM_COL_FILTER_WEEKEND));
-        spot.setFilterEvening(c.getBoolean(NUM_COL_FILTER_EVENING));
+        spot.setFilterWeek(c.getInt(NUM_COL_FILTER_WEEK) > 0);
+        spot.setFilterWeekEnd(c.getInt(NUM_COL_FILTER_WEEKEND) > 0);
+        spot.setFilterEvening(c.getInt(NUM_COL_FILTER_EVENING) > 0);
 
         c.close();
 

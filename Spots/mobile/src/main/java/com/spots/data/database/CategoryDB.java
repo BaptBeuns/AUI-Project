@@ -4,6 +4,7 @@ import com.spots.data.model.Category;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 
 public class CategoryDB extends BaseDB {
 
@@ -21,7 +22,7 @@ public class CategoryDB extends BaseDB {
 	private static final int NUM_COL_NAME = 1;
 	private static final int NUM_COL_LOGO = 2;
 
-	static final String CREATE_TABLE_STATEMENT = ID_FIELD_NAME + " " + ID_FIELD_TYPE
+	public static final String CREATE_TABLE_STATEMENT = ID_FIELD_NAME + " " + ID_FIELD_TYPE
             + ", " + NAME_FIELD_NAME + " " + NAME_FIELD_TYPE
             + ", " + LOGO_FIELD_NAME + " " + LOGO_FIELD_TYPE;
 
@@ -32,16 +33,16 @@ public class CategoryDB extends BaseDB {
 
 	public long insert(Category category) {
 		ContentValues values = new ContentValues();
-		values.put(NAME_FIELD_NAME, category.name);
-		values.put(LOGO_FIELD_NAME, category.logo);
+		values.put(NAME_FIELD_NAME, category.getName());
+		values.put(LOGO_FIELD_NAME, category.getLogo());
 
 		return mDb.insert(TABLE_NAME, null, values);
 	}
 
 	public int update(int id, Category category) {
 		ContentValues values = new ContentValues();
-		values.put(NAME_FIELD_NAME, category.name);
-		values.put(LOGO_FIELD_NAME, category.logo);
+		values.put(NAME_FIELD_NAME, category.getName());
+		values.put(LOGO_FIELD_NAME, category.getLogo());
 
 		return mDb.update(TABLE_NAME, values, ID_FIELD_NAME + " = " + id, null);
 	}
