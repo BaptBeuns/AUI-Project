@@ -10,6 +10,7 @@ import android.widget.ListView;
 
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class SavedPlaces extends ActionBarActivity {
         
         if (categoryList !=null) {
             for (Category category : categoryList) {
-                                categoryNameList.add(category.getName()):
+                                categoryNameList.add(category.getName());
 
             }
             ListView listView = (ListView)findViewById(R.id.categoryList);

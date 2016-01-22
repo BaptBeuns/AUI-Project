@@ -57,6 +57,33 @@ public class CategoryDB extends BaseDB {
         return cursorToCategory(c);
     }
 
+    public List<Category> getAll(){
+        Cursor c = super.mDb.query(TABLE_NAME, null , null, null, null, null, null);
+        return cursorToListCategory(c);
+    }
+
+    private List<Category> cursorToListCategeory(Cursor c){
+        if (c.getCount() == 0)
+            return null;
+
+        List<Category> listCategory = new ArrayList<Category>();
+        listCategory.clear();
+
+        if (c.moveToFirst()) {
+            do {
+                Category category = new Category();
+                
+                category.setId(c.getInt(NUM_COL_ID));
+                category.setName(c.getString(NUM_COL_NAME));
+                category.setLogo(c.getString(NUM_COL_LOGO));             
+
+                listCategory.add(category);
+            } while (c.moveToNext());
+        }
+        c.close();
+        return listCategory;
+    }
+    
     private Category cursorToCategory(Cursor c) {
         if (c.getCount() == 0)
             return null;
