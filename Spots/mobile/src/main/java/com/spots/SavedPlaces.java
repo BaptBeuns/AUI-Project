@@ -1,18 +1,12 @@
 package com.spots;
 
-<<<<<<< HEAD
 import android.app.Activity;
-=======
-import android.app.ActionBar;
->>>>>>> 913673d555602b6913de6887256f9d14bc87e5f9
 import android.content.Context;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toolbar;
 
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
@@ -44,14 +38,10 @@ public class SavedPlaces extends Activity {
                 spotAddressList.add(spot.getAddress());
             }
             ListView listView = (ListView) findViewById(R.id.spotList);
-            listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, spotNameList));
+            listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, spotNameList));
         }
 
-<<<<<<< HEAD
         CategoryDB categoryDB = new CategoryDB(mCtx);
-=======
-        /**CategoryDB categoryDB = new CategoryDB(mCtx);
->>>>>>> 913673d555602b6913de6887256f9d14bc87e5f9
         List<Category> categoryList = categoryDB.getAll();
         List<String> categoryNameList = new ArrayList<>();
 
@@ -61,15 +51,10 @@ public class SavedPlaces extends Activity {
 
             }
             ListView listView = (ListView) findViewById(R.id.categoryList);
-            listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, categoryNameList));
-<<<<<<< HEAD
+            listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoryNameList));
         }
     }
-=======
-        }*/
-    }
 
->>>>>>> 913673d555602b6913de6887256f9d14bc87e5f9
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
