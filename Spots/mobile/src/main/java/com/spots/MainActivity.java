@@ -30,6 +30,18 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCtx = this;
+
+        SpotDB spotDB = new SpotDB(mCtx);
+        List<Spot> spotList = spotDB.getAll();
+        List<String> spotNameList = new ArrayList<>();
+
+        if (spotList != null) {
+            for (Spot spot : spotList) {
+                spotNameList.add(spot.getName());
+            }
+            ListView listView = (ListView)findViewById(R.id.list_category);
+            listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , spotNameList));
+        }
     }
 
     public void addTestSpots(View view) {

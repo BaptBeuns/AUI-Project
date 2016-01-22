@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
 
 public class SpotsSQLiteDB extends SQLiteOpenHelper {
 
@@ -20,6 +21,23 @@ public class SpotsSQLiteDB extends SQLiteOpenHelper {
                 + SpotDB.CREATE_TABLE_STATEMENT + ")");
 		db.execSQL("CREATE TABLE IF NOT EXISTS " + CategoryDB.TABLE_NAME + " ("
                 + CategoryDB.CREATE_TABLE_STATEMENT + ")");
+
+        // Fixtures
+        db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
+                + ") values('Drink','drink.png')");
+        db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
+                + ") values('Eat','eat.png')");
+        db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
+                + ") values('Shop','shop.png')");
+        db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
+                + ") values('Visit','visit.png')");
+
+        db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
+                + ") values(45.28476,9.14034,'Birrificio Lambrate','via Golgi, Milano')");
+        db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
+                + ") values(45.47251790000001,9.23656619999997,'Jet Café','via Tajani, 11, Milano')");
+        db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
+                + ") values(45.4640976,9.191926500000022,'Duomo','Piazza del Duomo, Milano, Italy')");
 	}
 
     @Override
