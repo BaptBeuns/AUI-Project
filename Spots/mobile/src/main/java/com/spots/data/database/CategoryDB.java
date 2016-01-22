@@ -6,6 +6,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CategoryDB extends BaseDB {
 
 	public static final String TABLE_NAME = "CATEGORY";
@@ -65,7 +68,7 @@ public class CategoryDB extends BaseDB {
         return cursorToListCategory(c);
     }
 
-    private List<Category> cursorToListCategeory(Cursor c){
+    private List<Category> cursorToListCategory(Cursor c){
         if (c.getCount() == 0)
             return null;
 

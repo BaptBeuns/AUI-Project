@@ -14,7 +14,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.spots.data.database.BaseDB;
+import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
 import java.util.ArrayList;
@@ -31,6 +33,24 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         mCtx = this;
 
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> catList = categoryDB.getAll();
+
+        String categoryName = catList.get(0).getName();
+        TextView txt = (TextView)findViewById(R.id.cat1);
+        txt.setText(categoryName);
+        categoryName = catList.get(1).getName();
+        txt = (TextView)findViewById(R.id.cat2);
+        txt.setText(categoryName);
+        categoryName = catList.get(2).getName();
+        txt = (TextView)findViewById(R.id.cat3);
+        txt.setText(categoryName);
+        categoryName = catList.get(3).getName();
+        txt = (TextView)findViewById(R.id.cat4);
+        txt.setText(categoryName);
+
+
+        /*
         SpotDB spotDB = new SpotDB(mCtx);
         List<Spot> spotList = spotDB.getAll();
         List<String> spotNameList = new ArrayList<>();
@@ -42,21 +62,10 @@ public class MainActivity extends Activity {
             ListView listView = (ListView)findViewById(R.id.list_category);
             listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , spotNameList));
         }
+        */
     }
 
     public void addTestSpots(View view) {
-        Spot bar = new Spot();
-        bar.setName("Birrificio Lambrate");
-        bar.setLongitude(45.28476);
-        bar.setLatitude(9.14034);
-        bar.setAddress("via Golgi, Milano");
-
-        Spot bapt = new Spot();
-        bapt.setName("Jet Café");
-        bapt.setLongitude(45.47251790000001);
-        bapt.setLatitude(9.23656619999997);
-        bapt.setAddress("via Tajani, 11, Milano");
-
         Spot duomo = new Spot();
         duomo.setName("Duomo");
         duomo.setLongitude(45.4640976);
@@ -64,8 +73,6 @@ public class MainActivity extends Activity {
         duomo.setAddress("Piazza del Duomo, Milano, Italy");
 
         SpotDB spotDB = new SpotDB(mCtx);
-        spotDB.insert(bar);
-        spotDB.insert(bapt);
         spotDB.insert(duomo);
     }
 

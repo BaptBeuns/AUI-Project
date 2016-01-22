@@ -49,14 +49,10 @@ public class SpotDB extends BaseDB {
             + ", " + FILTER_WEEKEND_FIELD_NAME + " " + FILTER_WEEKEND_FIELD_TYPE
             + ", " + FILTER_EVENING_FIELD_NAME + " " + FILTER_EVENING_FIELD_TYPE;
 
-	public static final String INSERT_TABLE_STATEMENT = ID_FIELD_NAME
-            + ", " + LONGITUDE_FIELD_NAME
+	public static final String INSERT_TABLE_STATEMENT = LONGITUDE_FIELD_NAME
             + ", " + LATITUDE_FIELD_NAME
             + ", " + NAME_FIELD_NAME
-            + ", " + ADDRESS_FIELD_NAME
-            + ", " + FILTER_WEEK_FIELD_NAME
-            + ", " + FILTER_WEEKEND_FIELD_NAME
-            + ", " + FILTER_EVENING_FIELD_NAME;
+            + ", " + ADDRESS_FIELD_NAME;
 
 	public SpotDB(Context context) {
 		super(context);
