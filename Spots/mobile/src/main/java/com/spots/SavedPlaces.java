@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
 import com.spots.data.model.Spot;
 
@@ -38,7 +39,19 @@ public class SavedPlaces extends ActionBarActivity {
             ListView listView = (ListView)findViewById(R.id.spotList);
             listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , spotNameList));
         }
-    }
+        
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDB.getAll();
+        List<String> categoryNameList = new ArrayList<>();
+        
+        if (categoryList !=null) {
+            for (Category category : categoryList) {
+                                categoryNameList.add(category.getName()):
+
+            }
+            ListView listView = (ListView)findViewById(R.id.categoryList);
+            listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , categoryList));
+        }
 
 
     @Override
