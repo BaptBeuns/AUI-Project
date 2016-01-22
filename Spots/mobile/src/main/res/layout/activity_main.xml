@@ -5,37 +5,133 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="2">
 
-
-        <Button
+        <RelativeLayout
+            android:background="#2a86e2"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="ADD TESTS SPOTS"
-            android:onClick="addTestSpots"
-            />
+            android:layout_height="match_parent"
+            android:layout_weight="1">
 
-        <Button
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="MY SPOTS"
+                android:onClick="goToSaveSpots"
+                android:layout_gravity="center" />
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:background="#c96b0d"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="MY SPOTS"
-            android:onClick="goToSaveSpots"
-            android:layout_gravity="center" />
-        <!--
-                <TextView
-                    android:id="@+id/text_test"
-                    android:layout_width="500dp"
-                    android:layout_height="60dp"
-                    android:text="Before"
-                    />
-            -->
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/spot_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="SPOT DESCRIPTION"/>
+            <EditText
+                android:id="@+id/edit_spot_name"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/spot_description"
+                android:layout_centerHorizontal="true"
+                android:inputType="textShortMessage"
+                android:hint="Description"
+                android:layout_marginBottom="20dp"
+                android:textColorHint="#BBBBBB"/>
+            <LinearLayout
+                android:background="#1bbf2c"
+                android:id="@+id/list_category"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_below="@id/edit_spot_name"
+                android:orientation="horizontal"
+                android:weightSum="5"
+                android:divider="#6cbccc"
+                android:dividerHeight="1dp" >
+                <RelativeLayout
+                    android:id="@+id/cat1"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="CAT1"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/cat2"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="CAT2"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/cat3"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="CAT3"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/cat4"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="CAT4"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/catmore"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="More"/>
+                </RelativeLayout>
+            </LinearLayout>
+            <Button
+                android:id="@+id/button"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="ADD SPOT"
+                android:onClick="addTestSpots"
+                android:layout_alignParentBottom="true"/>
+
+
+        </RelativeLayout>
 
 
 
 
-    </FrameLayout>
+
+    </LinearLayout>
 
 
 

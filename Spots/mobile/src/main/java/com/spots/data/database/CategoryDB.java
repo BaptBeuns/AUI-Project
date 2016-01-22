@@ -29,6 +29,9 @@ public class CategoryDB extends BaseDB {
             + ", " + NAME_FIELD_NAME + " " + NAME_FIELD_TYPE
             + ", " + LOGO_FIELD_NAME + " " + LOGO_FIELD_TYPE;
 
+	public static final String INSERT_TABLE_STATEMENT = NAME_FIELD_NAME
+			+ ", " + LOGO_FIELD_NAME;
+
 	public CategoryDB(Context context) {
 		super(context);
 		this.mDb = this.open();
