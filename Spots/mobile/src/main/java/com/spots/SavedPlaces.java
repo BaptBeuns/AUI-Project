@@ -1,5 +1,6 @@
 package com.spots;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toolbar;
 
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
@@ -37,22 +39,23 @@ public class SavedPlaces extends ActionBarActivity {
                 spotNameList.add(spot.getName());
                 spotAddressList.add(spot.getAddress());
             }
-            ListView listView = (ListView)findViewById(R.id.spotList);
-            listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , spotNameList));
+            ListView listView = (ListView) findViewById(R.id.spotList);
+            listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, spotNameList));
         }
-        
-        CategoryDB categoryDB = new CategoryDB(mCtx);
+
+        /**CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> categoryList = categoryDB.getAll();
         List<String> categoryNameList = new ArrayList<>();
-        
-        if (categoryList !=null) {
+
+        if (categoryList != null) {
             for (Category category : categoryList) {
-                                categoryNameList.add(category.getName());
+                categoryNameList.add(category.getName());
 
             }
-            ListView listView = (ListView)findViewById(R.id.categoryList);
-            listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1 , categoryList));
-        }
+            ListView listView = (ListView) findViewById(R.id.categoryList);
+            listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, categoryNameList));
+        }*/
+    }
 
 
     @Override
