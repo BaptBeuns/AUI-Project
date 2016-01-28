@@ -3,6 +3,7 @@ package com.spots;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,10 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.spots.data.database.BaseDB;
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
@@ -37,17 +38,30 @@ public class MainActivity extends Activity {
         List<Category> catList = categoryDB.getAll();
 
         String categoryName = catList.get(0).getName();
-        TextView txt = (TextView)findViewById(R.id.cat1);
+        TextView txt = (TextView) findViewById(R.id.cat1);
         txt.setText(categoryName);
+
         categoryName = catList.get(1).getName();
-        txt = (TextView)findViewById(R.id.cat2);
+        txt = (TextView) findViewById(R.id.cat2);
         txt.setText(categoryName);
+
         categoryName = catList.get(2).getName();
-        txt = (TextView)findViewById(R.id.cat3);
+        txt = (TextView) findViewById(R.id.cat3);
         txt.setText(categoryName);
+
         categoryName = catList.get(3).getName();
-        txt = (TextView)findViewById(R.id.cat4);
+        txt = (TextView) findViewById(R.id.cat4);
         txt.setText(categoryName);
+
+        ImageView imagev = (ImageView) findViewById(R.id.imageCategory);
+        String mDrawableName = "handbag";
+        int resID = getResources().getIdentifier(mDrawableName , "drawable", getPackageName());
+        imagev.setImageResource(resID);
+        /*
+        for( int i = 0; i < myLayout.getChildCount(); i++ )
+            if( myLayout.getChildAt( i ) instanceof EditText )
+                myEditTextList.add( (EditText) myLayout.getChildAt( i ) );
+        */
 
 
         /*
@@ -102,4 +116,5 @@ public class MainActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

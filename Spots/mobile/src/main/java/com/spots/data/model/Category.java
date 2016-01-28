@@ -27,8 +27,8 @@ public class Category {
         return this.name;
     }
 
-    public String getLogo() {
-        return this.logo;
-    }
+    public String getLogo() { return this.logo; }
+
+    //public Image getLogo() { return this.logo; }
 
 }

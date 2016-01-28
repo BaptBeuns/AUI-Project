@@ -24,5 +24,4 @@ dependencies {
     wearApp project(':wear')
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.google.android.gms:play-services:8.1.0'
-    compile 'net.steamcrafted:materialiconlib:1.0.7'
 }
