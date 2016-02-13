@@ -1,7 +1,9 @@
 package com.spots;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,9 +43,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends Activity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private Context mCtx;
+    //private BottomToolbar toolbar;
 
     @Override
     public void onMapReady(GoogleMap map) {
@@ -66,6 +70,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCtx = this;
+
+        //toolbar = (BottomToolbar)findViewById(R.id.toolbar_bottom);
 
         // Gere la carte
         MapFragment mapFragment = (MapFragment) getFragmentManager()
@@ -185,6 +191,14 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onClickButtonLeft(View view) {
+        ActionBar bottomToolbar = getActionBar();
+
+        /*
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);*/
     }
 
 }
