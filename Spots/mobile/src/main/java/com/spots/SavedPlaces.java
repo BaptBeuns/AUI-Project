@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class SavedPlaces extends Activity {
+public class SavedPlacesFragment extends Fragment {
 
     Context mCtx;
 
