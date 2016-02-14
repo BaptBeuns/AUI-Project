@@ -59,6 +59,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Context mCtx;
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
+    private Location currentLocation;
 
     //private BottomToolbar toolbar;
 
@@ -105,6 +106,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 edit.setText(place.getName());
 
                 // On recentre la carte
+                pointLatLng = place.getLatLng();
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
                 // On place un marker
@@ -121,15 +123,34 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        // LocationListener
+        // Acquire a reference to the system Location Manager
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        // Define a listener that responds to location updates
+        LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                currentLocation = location;
+                Toast.makeText(mCtx, "Coordonnées : " + location.getLatitude() + " " +
+                    location.getLongitude(), Toast.LENGTH_SHORT).show();
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            public void onProviderEnabled(String provider) {}
+
+            public void onProviderDisabled(String provider) {}
+        };
+        // Register the listener with the Location Manager to receive location updates
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 200, locationListener);
+
         // Récupération des catégories à afficher
         CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> catList = categoryDB.getAll();
 
         String categoryName = catList.get(0).getName();
         String categoryImage = catList.get(0).getLogo();
-        Log.d("Return from Database",categoryImage);
         ImageView imageView = (ImageView)findViewById(R.id.category_image_1);
-        Log.d("Return from Database",getPackageName());
         int resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
         Drawable drawable = getDrawable(resID );
         imageView.setImageDrawable(drawable);
@@ -147,18 +168,25 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         categoryName = catList.get(3).getName();
         txt = (TextView) findViewById(R.id.cat4);
         txt.setText(categoryName);
-
     }
 
     public void addTestSpots(View view) {
-        Spot duomo = new Spot();
-        duomo.setName("Duomo");
-        duomo.setLongitude(45.4640976);
-        duomo.setLatitude(9.191926500000022);
-        duomo.setAddress("Piazza del Duomo, Milano, Italy");
+        // Fonctionne bien si le point a été donné par Google Place API
+        // TODO : idem pour un point random qu'on a mis sans recherche de Google Place.
+        Spot spot = new Spot();
+
+        // On chope le nom du lieu dans la description
+        TextView txt = (TextView) findViewById(R.id.edit_spot_name);
+        spot.setName(txt.getText());
+
+        // Les coordonnées GPS sont issues d'une requete android,
+        // ou de la carte Google.
+        spot.setLongitude();
+        spot.setLatitude();
+        spot.setAddress("");
 
         SpotDB spotDB = new SpotDB(mCtx);
-        spotDB.insert(duomo);
+        spotDB.insert(spot);
     }
 
     public void goToSaveSpots(View view) {
