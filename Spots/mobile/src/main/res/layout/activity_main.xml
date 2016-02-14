@@ -135,6 +135,7 @@
                 android:layout_height="60dp"
                 android:background="@drawable/add_button"
                 android:text="ADD SPOT"
+                android:elevation="0dp"
                 android:textColor="@color/white"
                 android:layout_centerInParent="true"
                 android:onClick="addTestSpots"
