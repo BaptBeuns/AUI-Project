@@ -1,158 +1,40 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp"
-    android:paddingTop="0dp"
-    android:paddingBottom="0dp"
-    tools:context=".MainActivity">
+    android:id="@+id/main_layout">
 
-    <LinearLayout
+    <ViewAnimator
+        android:id="@+id/sample_output"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:weightSum="2">
+        android:layout_height="0px"
+        android:layout_weight="1">
 
-        <RelativeLayout
-            android:background="#2a86e2"
+        <ScrollView
+            style="@style/Widget.SampleMessageTile"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_height="match_parent">
 
-            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-                class="com.google.android.gms.maps.MapFragment"
-                android:id="@+id/map"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-        </RelativeLayout>
-        <RelativeLayout
-            android:background="@color/light_grey"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
             <TextView
-                android:id="@+id/spot_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="SPOT DESCRIPTION"
-                android:textColor="@color/dark_grey"
-                android:textSize="10sp"/>
-            <EditText
-                android:id="@+id/edit_spot_name"
-                android:background="@color/white"
-                android:gravity="center"
-                android:layout_width="300dp"
-                android:layout_height="50dp"
-                android:layout_below="@id/spot_description"
-                android:layout_centerHorizontal="true"
-                android:inputType="textShortMessage"
-                android:hint="Description"
-                android:textColorHint="#BBBBBB"
-                android:textColor="@color/black"
-                android:textSize="18sp"/>
-            <LinearLayout
-                android:id="@+id/categoryList"
-                android:layout_gravity="center_vertical|center_horizontal"
+                style="@style/Widget.SampleMessage"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_below="@id/edit_spot_name"
-                android:orientation="horizontal"
-                android:weightSum="5"
-                android:divider="#6cbccc"
-                android:dividerHeight="1dp" >
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <ImageView
-                        android:id="@+id/category_image_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                    <TextView
-                        android:id="@+id/cat1"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT1"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat2"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT2"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat3"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT3"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat4"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT4"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:id="@+id/catmore"
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="More"/>
-                </RelativeLayout>
-            </LinearLayout>
-            <Button
-                android:id="@+id/button"
-                android:layout_width="wrap_content"
-                android:paddingLeft="60dp"
-                android:paddingRight="60dp"
-                android:layout_marginBottom="10dp"
-                android:layout_height="60dp"
-                android:background="@drawable/add_button"
-                android:text="ADD SPOT"
-                android:elevation="0dp"
-                android:textColor="@color/white"
-                android:layout_centerInParent="true"
-                android:onClick="addTestSpots"
-                android:layout_alignParentBottom="true">
-            </Button>
+                android:layout_height="wrap_content"
+                android:text="ADD" />
+        </ScrollView>
 
+    </ViewAnimator>
 
-        </RelativeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray" />
 
-        <include
-            android:id="@+id/activity_bottom_toolbar"
-            layout="@layout/activity_bottom_toolbar"
-            />
-    </LinearLayout>
+    <FrameLayout
+        android:id="@+id/sample_content_fragment"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="0px" />
 
-
-
-
-
-</RelativeLayout>
+</LinearLayout>
