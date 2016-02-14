@@ -15,6 +15,7 @@ import android.location.LocationProvider;
 import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -44,9 +47,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity, FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
 
     private Context mCtx;
+    private GoogleApiClient mGoogleApiClient;
+    private GoogleMap mMap;
+
     //private BottomToolbar toolbar;
 
     @Override
@@ -79,6 +85,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // Crée une entité de Google API pour pouvoir faire des requêtes à Google Place
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this, this)
+                .build();
+
+        // EventListener pour le Place selector
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+        getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // On remplit l'EditView avec le nom du lieu
+                EditView edit = (EditView) findViewById(R.id.edit_spot_name);
+                edit.setText(place.getName());
+
+                // On recentre la carte
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.geometry.location, 17.0));
+
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+
+        // Récupération des catégories à afficher
         CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> catList = categoryDB.getAll();
 
