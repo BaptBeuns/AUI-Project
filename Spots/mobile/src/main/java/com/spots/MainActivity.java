@@ -105,11 +105,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         txt = (TextView) findViewById(R.id.cat4);
         txt.setText(categoryName);
 
-        ImageView imagev = (ImageView) findViewById(R.id.imageCategory);
-        String mDrawableName = "handbag";
-        resID = getResources().getIdentifier(mDrawableName , "drawable", getPackageName());
-        imagev.setImageResource(resID);
-
     }
 
     public void addTestSpots(View view) {

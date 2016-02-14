@@ -42,24 +42,23 @@
                 android:paddingBottom="10dp"
                 android:text="SPOT DESCRIPTION"
                 android:textColor="@color/dark_grey"
-                android:textSize="14sp"/>
+                android:textSize="10sp"/>
             <EditText
                 android:id="@+id/edit_spot_name"
                 android:background="@color/white"
                 android:gravity="center"
                 android:layout_width="300dp"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_below="@id/spot_description"
                 android:layout_centerHorizontal="true"
                 android:inputType="textShortMessage"
                 android:hint="Description"
-                android:layout_marginBottom="20dp"
-                android:textColorHint="@color/light_grey"
+                android:textColorHint="#BBBBBB"
                 android:textColor="@color/black"
-                android:textSize="16sp"/>
+                android:textSize="18sp"/>
             <LinearLayout
-                android:background="#1bbf2c"
                 android:id="@+id/categoryList"
+                android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_below="@id/edit_spot_name"
@@ -136,6 +135,7 @@
                 android:layout_height="60dp"
                 android:background="@drawable/add_button"
                 android:text="ADD SPOT"
+                android:textColor="@color/white"
                 android:layout_centerInParent="true"
                 android:onClick="addTestSpots"
                 android:layout_alignParentBottom="true">
