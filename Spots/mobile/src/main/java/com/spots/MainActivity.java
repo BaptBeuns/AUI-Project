@@ -28,8 +28,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -37,6 +43,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
@@ -47,7 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity, FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
 
     private Context mCtx;
     private GoogleApiClient mGoogleApiClient;
@@ -57,19 +64,15 @@ public class MainActivity extends AppCompatActivity, FragmentActivity implements
 
     @Override
     public void onMapReady(GoogleMap map) {
-        LatLng sydney = new LatLng(-33.867, 151.206);
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
             return;
         }
+        mMap = map;
+    }
 
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13));
-
-        map.addMarker(new MarkerOptions()
-                .title("Sydney")
-                .snippet("Bonne chienne de Sydney.")
-                .position(sydney));
+    public void onConnectionFailed (ConnectionResult result) {
+        Log.d("MAIN ACTIVITY","Connetion Failed");
     }
 
     @Override
@@ -77,8 +80,6 @@ public class MainActivity extends AppCompatActivity, FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCtx = this;
-
-        //toolbar = (BottomToolbar)findViewById(R.id.toolbar_bottom);
 
         // Gere la carte
         MapFragment mapFragment = (MapFragment) getFragmentManager()
@@ -100,18 +101,23 @@ public class MainActivity extends AppCompatActivity, FragmentActivity implements
             @Override
             public void onPlaceSelected(Place place) {
                 // On remplit l'EditView avec le nom du lieu
-                EditView edit = (EditView) findViewById(R.id.edit_spot_name);
+                TextView edit = (TextView) findViewById(R.id.edit_spot_name);
                 edit.setText(place.getName());
 
                 // On recentre la carte
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.geometry.location, 17.0));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
+                // On place un marker
+                Marker newMarker = mMap.addMarker(new MarkerOptions()
+                        .title((String)place.getName())
+                        .snippet((String)place.getAddress())
+                        .position(place.getLatLng()));
             }
 
             @Override
             public void onError(Status status) {
                 // TODO: Handle the error.
-                Log.i(TAG, "An error occurred: " + status);
+                Log.i("GOOGLE PLACES", "An error occurred: " + status);
             }
         });
 
