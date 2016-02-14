@@ -24,13 +24,13 @@ public class SpotsSQLiteDB extends SQLiteOpenHelper {
 
         // Fixtures
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
-                + ") values('Drink','GLASS_TULIP')");
+                + ") values('Drink','beer_category')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
                 + ") values('Eat','SILVERWARE_FORK')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
                 + ") values('Shop','SHOPPING')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
-                + ") values('Visit','CASTLE')");
+                + ") values('Visit','tourism_category.png')");
 
         db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
                 + ") values(45.28476,9.14034,'Birrificio Lambrate','via Golgi, Milano')");
@@ -38,6 +38,7 @@ public class SpotsSQLiteDB extends SQLiteOpenHelper {
                 + ") values(45.47251790000001,9.23656619999997,'Jet Café','via Tajani, 11, Milano')");
         db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
                 + ") values(45.4640976,9.191926500000022,'Duomo','Piazza del Duomo, Milano, Italy')");
+
 	}
 
     @Override

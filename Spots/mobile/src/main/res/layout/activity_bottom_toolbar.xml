@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<android.support.v7.widget.Toolbar
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.spots.BottomToolbar">
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_bottom"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:background="?attr/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:minHeight="?attr/actionBarSize">
+    android:background="?attr/colorPrimary"
+    android:layout_alignParentBottom="true"
+    android:minHeight="?attr/actionBarSize"
+    android:elevation="4dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
@@ -27,6 +22,8 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="#00000000"
+                style="?android:attr/borderlessButtonStyle"
                 android:text="@string/toolbar_text_1"
                 android:drawableStart="@drawable/polaroid"
                 android:onClick="onClickButtonLeft"/>
@@ -36,24 +33,29 @@
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="match_parent">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Saved places"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#00000000"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="@string/toolbar_text_2"
+                android:drawableStart="@drawable/polaroid"
+                android:onClick="onClickButtonLeft"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="match_parent">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Explore"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#00000000"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="@string/toolbar_text_3"
+                android:drawableStart="@drawable/polaroid"
+                android:onClick="onClickButtonLeft"/>
         </LinearLayout>
 
 </LinearLayout>
     </android.support.v7.widget.Toolbar>
-</LinearLayout>

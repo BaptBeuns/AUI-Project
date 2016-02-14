@@ -7,6 +7,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -78,11 +79,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
         CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> catList = categoryDB.getAll();
 
         String categoryName = catList.get(0).getName();
+        String categoryImage = catList.get(0).getLogo();
+        Log.d("Return from Database",categoryImage);
+        ImageView imageView = (ImageView)findViewById(R.id.category_image_1);
+        Log.d("Return from Database",getPackageName());
+        int resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+        Drawable drawable = getDrawable(resID );
+        imageView.setImageDrawable(drawable);
         TextView txt = (TextView) findViewById(R.id.cat1);
         txt.setText(categoryName);
 
@@ -100,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         ImageView imagev = (ImageView) findViewById(R.id.imageCategory);
         String mDrawableName = "handbag";
-        int resID = getResources().getIdentifier(mDrawableName , "drawable", getPackageName());
+        resID = getResources().getIdentifier(mDrawableName , "drawable", getPackageName());
         imagev.setImageResource(resID);
 
     }
