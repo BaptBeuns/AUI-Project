@@ -6,13 +6,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,12 +34,22 @@ import com.spots.data.model.Spot;
 import java.util.List;
 
 
-public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class HomeActivity extends Fragment implements OnMapReadyCallback {
 
     private Context mCtx;
     public static final String TAG = "HomeActivity";
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        ViewGroup rootView = (ViewGroup) inflater.inflate(
+                R.layout.activity_home, container, false);
 
+        return rootView;
+    }
+
+
+    /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,16 +92,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-
+*/
     @Override
     public void onMapReady(GoogleMap map) {
         LatLng sydney = new LatLng(-33.867, 151.206);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
             return;
         }
-
+*/
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 13));
 
         map.addMarker(new MarkerOptions()
@@ -107,12 +121,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(duomo);
     }
-
+/*
     public void goToSaveSpots(View view) {
         Intent intent = new Intent(this, SavedPlaces.class);
         startActivity(intent);
     }
-
+*/
 /*
     public void startMap() {
         // INIT MAP
@@ -162,7 +176,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Show rationale and request permission.
         }
 
-    }*/
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -170,7 +184,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
+*/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will

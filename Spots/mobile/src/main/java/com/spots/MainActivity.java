@@ -17,13 +17,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+/*
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             NavigationFragment fragment = new NavigationFragment();
-            transaction.replace(R.id.sample_content_fragment, fragment);
+            transaction.replace(R.id.content_fragment, fragment);
             transaction.commit();
-        }
+        }*/
     }
 
 

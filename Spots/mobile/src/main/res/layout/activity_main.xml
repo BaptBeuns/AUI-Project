@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main_layout">
-
+    <!--
     <ViewAnimator
         android:id="@+id/sample_output"
         android:layout_width="match_parent"
@@ -25,15 +25,14 @@
         </ScrollView>
 
     </ViewAnimator>
-
+-->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray" />
 
     <FrameLayout
-        android:id="@+id/sample_content_fragment"
-        android:layout_weight="2"
+        android:id="@+id/content_fragment"
         android:layout_width="match_parent"
         android:layout_height="0px" />
 
