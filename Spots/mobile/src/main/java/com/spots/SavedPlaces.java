@@ -44,7 +44,7 @@ public class SavedPlaces extends Activity {
         CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> categoryList = categoryDB.getAll();
         List<String> categoryNameList = new ArrayList<>();
-
+/*
         if (categoryList != null) {
             for (Category category : categoryList) {
                 categoryNameList.add(category.getName());
@@ -52,7 +52,7 @@ public class SavedPlaces extends Activity {
             }
             ListView listView = (ListView) findViewById(R.id.categoryList);
             listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoryNameList));
-        }
+        }*/
     }
 
 
