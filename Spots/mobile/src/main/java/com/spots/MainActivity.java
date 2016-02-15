@@ -69,6 +69,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private LocationManager locationManager;
     private Location currentLocation;
+    private Location markerLocation;
     String provider;
 
     //private BottomToolbar toolbar;
@@ -91,8 +92,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // Called when a new location is found by the network location provider.
         currentLocation = location;
         Log.d("ONLOCATIONCHANGED", currentLocation.toString());
-        Toast.makeText(mCtx, "Coordonnées : " + location.getLatitude() + " " +
-                location.getLongitude(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -100,6 +99,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCtx = this;
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        provider = locationManager.getBestProvider(criteria, false);
+        markerLocation = new Location(provider);
 
         // Gere la carte
         MapFragment mapFragment = (MapFragment) getFragmentManager()
@@ -128,6 +131,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
                 // On place un marker
+                Log.d("LOCATION MARKER", Double.toString(place.getLatLng().latitude));
+
+                markerLocation.setLatitude(place.getLatLng().latitude);
+                markerLocation.setLongitude(place.getLatLng().longitude);
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .title((String) place.getName())
                         .snippet((String) place.getAddress())
@@ -143,9 +150,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // LocationListener
         // Acquire a reference to the system Location Manager
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        provider = locationManager.getBestProvider(criteria, false);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -201,7 +205,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // On chope le nom du lieu dans la description
         TextView txt = (TextView) findViewById(R.id.edit_spot_name);
         String name = txt.getText().toString();
-        Log.d("LOCATION NAME", name);
         if (name.matches("")) {
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
@@ -212,8 +215,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Les coordonnées GPS sont issues d'une requete android,
         // ou de la carte Google.
-        if (currentLocation != null) {
-            Log.d("LOCATION", "La position courante est bien connue par l'engin");
+        if (markerLocation != null) {
+            Log.d("LOCATION", "Localisation issue de Google");
+            spot.setLongitude(markerLocation.getLongitude());
+            spot.setLatitude(markerLocation.getLatitude());
+        } else if (currentLocation != null) {
+            Log.d("LOCATION", "Localisation issue du GPS");
             spot.setLongitude(currentLocation.getLongitude());
             spot.setLatitude(currentLocation.getLatitude());
         }
