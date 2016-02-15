@@ -27,6 +27,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
@@ -50,7 +51,10 @@ import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 // http://developer.android.com/guide/topics/location/strategies.html
@@ -58,12 +62,14 @@ import java.util.List;
 // http://webdesignergeeks.com/mobile/android/geting-current-location-in-android-application-using-gps/
 // http://www.vogella.com/tutorials/AndroidLocationAPI/article.html#locationapi
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener, LocationListener {
 
     private Context mCtx;
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
+    private LocationManager locationManager;
     private Location currentLocation;
+    String provider;
 
     //private BottomToolbar toolbar;
 
@@ -76,8 +82,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = map;
     }
 
-    public void onConnectionFailed (ConnectionResult result) {
-        Log.d("MAIN ACTIVITY","Connetion Failed");
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.d("MAIN ACTIVITY", "Connetion Failed");
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        // Called when a new location is found by the network location provider.
+        currentLocation = location;
+        Log.d("ONLOCATIONCHANGED", currentLocation.toString());
+        Toast.makeText(mCtx, "Coordonnées : " + location.getLatitude() + " " +
+                location.getLongitude(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -101,7 +116,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // EventListener pour le Place selector
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-        getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
@@ -110,13 +125,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 edit.setText(place.getName());
 
                 // On recentre la carte
-                pointLatLng = place.getLatLng();
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
                 // On place un marker
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
-                        .title((String)place.getName())
-                        .snippet((String)place.getAddress())
+                        .title((String) place.getName())
+                        .snippet((String) place.getAddress())
                         .position(place.getLatLng()));
             }
 
@@ -129,24 +143,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // LocationListener
         // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                currentLocation = location;
-                Toast.makeText(mCtx, "Coordonnées : " + location.getLatitude() + " " +
-                    location.getLongitude(), Toast.LENGTH_SHORT).show();
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-            public void onProviderEnabled(String provider) {}
-
-            public void onProviderDisabled(String provider) {}
-        };
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        provider = locationManager.getBestProvider(criteria, false);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        currentLocation = locationManager.getLastKnownLocation(provider);
+        Log.d("LOCATION", currentLocation.toString());
         // Register the listener with the Location Manager to receive location updates
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 200, locationListener);
+        // locationManager.requestLocationUpdates(provider, 60000, 200, locationListener);
 
         // Récupération des catégories à afficher
         CategoryDB categoryDB = new CategoryDB(mCtx);
@@ -174,6 +187,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         txt.setText(categoryName);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
     public void addTestSpots(View view) {
         // Fonctionne bien si le point a été donné par Google Place API
         // TODO : idem pour un point random qu'on a mis sans recherche de Google Place.
@@ -181,16 +200,28 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // On chope le nom du lieu dans la description
         TextView txt = (TextView) findViewById(R.id.edit_spot_name);
-        spot.setName(txt.getText());
+        String name = txt.getText().toString();
+        Log.d("LOCATION NAME", name);
+        if (name.matches("")) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String textDate = dateFormat.format(date).toString();
+            name = "Nouveau point ajouté au " + textDate;
+        }
+        spot.setName(name);
 
         // Les coordonnées GPS sont issues d'une requete android,
         // ou de la carte Google.
-        spot.setLongitude();
-        spot.setLatitude();
+        if (currentLocation != null) {
+            Log.d("LOCATION", "La position courante est bien connue par l'engin");
+            spot.setLongitude(currentLocation.getLongitude());
+            spot.setLatitude(currentLocation.getLatitude());
+        }
         spot.setAddress("");
 
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(spot);
+        Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
     }
 
     public void goToSaveSpots(View view) {
