@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:weightSum="20">
+        android:weightSum="20"
+        android:background="@color/light_grey">
 
         <RelativeLayout
             android:background="@color/light_grey"
@@ -52,27 +53,18 @@
 
         </RelativeLayout>
         <RelativeLayout
-            android:background="@color/light_grey"
             android:layout_width="match_parent"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_height="0dp"
             android:layout_weight="10">
-            <TextView
-                android:id="@+id/spot_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="SPOT DESCRIPTION"
-                android:textColor="@color/dark_grey"
-                android:textSize="12sp"/>
             <EditText
                 android:id="@+id/edit_spot_name"
                 android:background="@color/white"
                 android:gravity="center"
-                android:layout_width="300dp"
+                android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_below="@id/spot_description"
+                android:layout_marginTop="10dp"
                 android:layout_centerHorizontal="true"
                 android:inputType="textShortMessage"
                 android:hint="Description"
@@ -83,80 +75,152 @@
                 android:id="@+id/categoryList"
                 android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="80dp"
                 android:layout_below="@id/edit_spot_name"
-                android:orientation="horizontal"
-                android:weightSum="5"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="vertical"
                 android:divider="#6cbccc"
                 android:dividerHeight="1dp" >
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/layout_images"
+                    android:weightSum="5"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                    <ImageView
-                        android:id="@+id/category_image_1"
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                    <TextView
-                        android:id="@+id/cat1"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT1"/>
-                </RelativeLayout>
-                <RelativeLayout
+                        android:layout_weight="1">
+                        <ImageButton
+                            android:id="@+id/category_image_1"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_centerHorizontal="true"
+                            android:state_selected="false"
+                            android:onClick="changeResource"
+                            android:background="@drawable/round_button"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <ImageButton
+                            android:id="@+id/category_image_2"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_centerHorizontal="true"
+                            android:state_selected="false"
+                            android:onClick="changeResource"
+                            android:background="@drawable/round_button"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <ImageButton
+                            android:id="@+id/category_image_3"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_centerHorizontal="true"
+                            android:state_selected="false"
+                            android:onClick="changeResource"
+                            android:background="@drawable/round_button"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <ImageButton
+                            android:id="@+id/category_image_4"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_centerHorizontal="true"
+                            android:state_selected="false"
+                            android:onClick="changeResource"
+                            android:background="@drawable/round_button"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <ImageButton
+                            android:id="@+id/category_image_5"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_centerHorizontal="true"
+                            android:state_selected="false"
+                            android:onClick="changeResource"
+                            android:background="@drawable/round_button"/>
+                    </RelativeLayout>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_weight="1"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat2"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT2"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat3"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT3"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat4"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT4"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:id="@+id/catmore"
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="More"/>
-                </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/cat1"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="CAT1"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/cat2"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="CAT2"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/cat3"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="CAT3"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/cat4"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="CAT4"/>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="More"/>
+                    </RelativeLayout>
+                </LinearLayout>
             </LinearLayout>
             <Button
                 android:id="@+id/button"
                 android:layout_width="wrap_content"
                 android:paddingLeft="60dp"
                 android:paddingRight="60dp"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:layout_marginBottom="15dp"
-                android:background="@drawable/add_button"
+                android:background="@drawable/add_button_selector"
                 android:text="ADD SPOT"
                 android:elevation="0dp"
                 android:textColor="@color/white"

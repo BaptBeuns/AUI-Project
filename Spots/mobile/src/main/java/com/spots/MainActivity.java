@@ -24,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -195,6 +196,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onResume() {
         super.onResume();
         // locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
+    public void changeResource(View button) {
+        button.setSelected(!button.isSelected());
+
+        if (button.isSelected()) {
+            button.setBackgroundResource(R.drawable.round_button_selected);
+        } else {
+            button.setBackgroundResource(R.drawable.round_button);
+        }
     }
 
     public void addTestSpots(View view) {
