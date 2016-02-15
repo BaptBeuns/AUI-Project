@@ -53,6 +53,10 @@ import com.spots.data.model.Spot;
 import java.util.ArrayList;
 import java.util.List;
 
+// http://developer.android.com/guide/topics/location/strategies.html
+// http://developer.android.com/reference/android/location/LocationManager.html#requestLocationUpdates%28java.lang.String,%20long,%20float,%20android.app.PendingIntent%29
+// http://webdesignergeeks.com/mobile/android/geting-current-location-in-android-application-using-gps/
+// http://www.vogella.com/tutorials/AndroidLocationAPI/article.html#locationapi
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
 
