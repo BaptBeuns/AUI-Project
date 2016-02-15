@@ -1,11 +1,10 @@
 package com.spots;
 
-import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ListView;
 
 import com.spots.data.database.CategoryDB;
@@ -13,68 +12,78 @@ import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
-import java.util.ArrayList;
 import java.util.List;
 
+public class SavedPlaces extends AppCompatActivity {
 
-public class SavedPlaces extends Activity {
+    //Database
 
-    Context mCtx;
+    //List Input Data
+//    String[] titlesArray = {"Rock'n Roll Bar","Atomic","Duomo Bar","Jet Café"};
+//    String[] detailsArray = {"2.7 km away","300 meters away","6 km away"};
+//    int [] imagesArray={R.drawable.rounded_dj,R.drawable.rounded_beer,R.drawable.rounded_sport,R.drawable.rounded_shopping_bag};
+
+    public SavedPlaces(){
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_places);
-        mCtx = this;
 
-        SpotDB spotDB = new SpotDB(mCtx);
-        List<Spot> spotList = spotDB.getAll();
-        List<String> spotNameList = new ArrayList<>();
-        List<String> spotAddressList = new ArrayList<>();
+        SpotDB spotDatabase = new SpotDB(this);
+        List<Spot> spotList=spotDatabase.getAll();
+        CategoryDB categoryDatabase = new CategoryDB(this);
+        List<Category> categoryList=categoryDatabase.getAll();
+        Log.d("ufy",spotList.toString());
 
-        if (spotList != null) {
-            for (Spot spot : spotList) {
-                spotNameList.add(spot.getName());
-                spotAddressList.add(spot.getAddress());
+
+        System.out.println(spotList);
+        if (spotList.size()>0) {
+
+            String[] titlesArray = new String[spotList.size()];
+            String[] adressesArray = new String[spotList.size()];
+            int[] imagesArray = new int[spotList.size()];
+
+            for (int i=0;i<titlesArray.length;i++) {
+
+                Spot spot=spotList.get(i);
+                Category category= categoryList.get(spot.getCategoryId());
+
+                titlesArray[i]=spot.getName();
+                adressesArray[i]=spot.getAddress();
+                imagesArray[i]=getResources().getIdentifier(category.getLogo() , "drawable", getPackageName());
+
+                Log.d("category is", Integer.toString(spot.getCategoryId()));
             }
-            ListView listView = (ListView) findViewById(R.id.spotList);
-            listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, spotNameList));
+
+            CustomAdapter adapter = new CustomAdapter(this, titlesArray,adressesArray,imagesArray);
+            ListView listView = (ListView) findViewById(R.id.savedSpotsList);
+            listView.setAdapter(adapter);
         }
-
-        CategoryDB categoryDB = new CategoryDB(mCtx);
-        List<Category> categoryList = categoryDB.getAll();
-        List<String> categoryNameList = new ArrayList<>();
-/*
-        if (categoryList != null) {
-            for (Category category : categoryList) {
-                categoryNameList.add(category.getName());
-
-            }
-            ListView listView = (ListView) findViewById(R.id.categoryList);
-            listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, categoryNameList));
-        }*/
     }
 
+    public void displayGoogleMapsIntentForSpotAtIndex(int spotIndex){
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_saved_places, menu);
-        return true;
-    }
+//        //Get Spot
+//        SpotDB database = new SpotDB(this);
+//        List<Spot> spotList=database.getAll();
+//        Spot selectedSpot=spotList.get(spotIndex);
+//
+//        //Build location String
+//        String latitude=Double.toString(selectedSpot.getLatitude());
+//        String longitude=Double.toString(selectedSpot.getLongitude());
+//        String locationString = "geo"+latitude+","+longitude;
+//        Uri gmmIntentUri = Uri.parse(locationString);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        //Call GoogleMaps Intent
+        Uri gmmIntentUri = Uri.parse("geo:37.7749,-122.4194");
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapIntent);
         }
-
-        return super.onOptionsItemSelected(item);
     }
+
+
 }

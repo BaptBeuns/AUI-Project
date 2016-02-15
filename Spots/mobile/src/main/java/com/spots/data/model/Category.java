@@ -2,7 +2,7 @@ package com.spots.data.model;
 
 public class Category {
 
-	int id;
+	int id=0;
 	String name;
 	String logo;
 

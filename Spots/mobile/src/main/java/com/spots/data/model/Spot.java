@@ -3,12 +3,15 @@ package com.spots.data.model;
 public class Spot {
 
 	private static int    NO_ID = -1;
-	private static int    NO_LONGITUDE = -1;
+    private static int    NO_CATEGORY_ID = -1;
+    private static int    NO_LONGITUDE = -1;
 	private static int    NO_LATITUDE = -1;
 	private static boolean NO_FILTER = true;
 
 	int id;
-	double longitude;
+    int categoryId;
+
+    double longitude;
 	double latitude;
 	String name;
 	String address;
@@ -18,6 +21,7 @@ public class Spot {
 
 	public Spot() {
 		setId(NO_ID);
+        setCategoryId(NO_CATEGORY_ID);
 		setLongitude(NO_LONGITUDE);
 		setLatitude(NO_LATITUDE);
 		setName(new String());
@@ -29,6 +33,10 @@ public class Spot {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public void setCategoryId(int id) {
+		this.categoryId = id;
 	}
 
 	public void setLatitude(double latitude) {
@@ -58,6 +66,8 @@ public class Spot {
 	public void setFilterEvening(boolean filter) {
 		this.filterNotifyEvening = filter;
 	}
+
+    public int getCategoryId() {return this.categoryId;} ;
 
     public double getLatitude() {
         return this.latitude;
