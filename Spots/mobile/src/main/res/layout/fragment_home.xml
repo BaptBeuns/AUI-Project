@@ -7,43 +7,31 @@
     android:background="@color/light_grey"
     tools:context=".MainActivity"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <RelativeLayout
-        android:background="@color/light_grey"
+
+    <RelativeLayout android:background="@color/light_grey"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="2"
         android:id="@+id/top_layout">
-<!--
-        <android.support.v7.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/edit_search_place">
-            <fragment
-                android:id="@+id/place_autocomplete_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-                />
-        </android.support.v7.widget.CardView>-->
-    </RelativeLayout>
 
+        </RelativeLayout>
 
     <RelativeLayout
         android:background="#2a86e2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="8"
-        android:id="@+id/map_layout"
-        xmlns:android="http://schemas.android.com/apk/res/android">
+        android:id="@+id/map_layout">
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_height="0dp"
-            android:layout_weight="10">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_height="0dp"
+        android:layout_weight="10">
+
             <EditText
                 android:id="@+id/edit_spot_name"
                 android:background="@color/white"

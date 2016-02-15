@@ -1,38 +1,92 @@
 package com.spots;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 
 // http://developer.android.com/guide/topics/location/strategies.html
 // http://developer.android.com/reference/android/location/LocationManager.html#requestLocationUpdates%28java.lang.String,%20long,%20float,%20android.app.PendingIntent%29
 // http://webdesignergeeks.com/mobile/android/geting-current-location-in-android-application-using-gps/
 // http://www.vogella.com/tutorials/AndroidLocationAPI/article.html#locationapi
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     public static String PACKAGE_NAME;
+    private static String TAG = "MAIN_ACTIVITY";
+
+    private static Context mCtx;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationManager locationManager;
+    private Location currentLocation;
+    private Location markerLocation;
+    String provider;
+    private MapFragment mapFragment;
+    private GoogleMap mMap;
+    private FragmentPagerAdapter adapterViewPager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.fragment_base);
         PACKAGE_NAME = getApplicationContext().getPackageName();
 
-        if (savedInstanceState == null) {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            SlidingTabFragment fragment = new SlidingTabFragment();
-            transaction.replace(R.id.sample_content_fragment, fragment);
-            transaction.commit();
-        }
-    }
-}
+        ViewPager vpPager = (ViewPager) findViewById(R.id.viewpager);
+        adapterViewPager = new SpotsPagerAdapter(getSupportFragmentManager(), MainActivity.this);
+        vpPager.setAdapter(adapterViewPager);
 
-    //private BottomToolbar toolbar;
-/*
+        vpPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+            // This method will be invoked when a new page becomes selected.
+            @Override
+            public void onPageSelected(int position) {
+                Toast.makeText(MainActivity.this,
+                        "Selected page position: " + position, Toast.LENGTH_SHORT).show();
+            }
+
+            // This method will be invoked when the current page is scrolled
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                // Code goes here
+            }
+
+            // Called when the scroll state changes:
+            // SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING, SCROLL_STATE_SETTLING
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                // Code goes here
+            }
+        });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+    // HOME FRAGMENT
+
     @Override
     public void onMapReady(GoogleMap map) {
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
             return;
@@ -50,107 +104,6 @@ public class MainActivity extends FragmentActivity {
         currentLocation = location;
         Log.d("ONLOCATIONCHANGED", currentLocation.toString());
     }
-*/
-
-/*
-        mCtx = this;
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        provider = locationManager.getBestProvider(criteria, false);
-        markerLocation = new Location(provider);
-
-        // Gere la carte
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        // Crée une entité de Google API pour pouvoir faire des requêtes à Google Place
-        mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(this, this)
-                .build();
-
-        // EventListener pour le Place selector
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // On remplit l'EditView avec le nom du lieu
-                TextView edit = (TextView) findViewById(R.id.edit_spot_name);
-                edit.setText(place.getName());
-
-                // On recentre la carte
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
-
-                // On place un marker
-                Log.d("LOCATION MARKER", Double.toString(place.getLatLng().latitude));
-
-                markerLocation.setLatitude(place.getLatLng().latitude);
-                markerLocation.setLongitude(place.getLatLng().longitude);
-                Marker newMarker = mMap.addMarker(new MarkerOptions()
-                        .title((String) place.getName())
-                        .snippet((String) place.getAddress())
-                        .position(place.getLatLng()));
-            }
-
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i("GOOGLE PLACES", "An error occurred: " + status);
-            }
-        });
-
-        // LocationListener
-        // Acquire a reference to the system Location Manager
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        currentLocation = locationManager.getLastKnownLocation(provider);
-        Log.d("LOCATION", currentLocation.toString());
-        // Register the listener with the Location Manager to receive location updates
-        // locationManager.requestLocationUpdates(provider, 60000, 200, locationListener);
-
-        // Récupération des catégories à afficher
-        CategoryDB categoryDB = new CategoryDB(mCtx);
-        List<Category> catList = categoryDB.getAll();
-
-        String categoryName = catList.get(0).getName();
-        String categoryImage = catList.get(0).getLogo();
-        ImageView imageView = (ImageView) findViewById(R.id.category_image_1);
-        int resID = getResources().getIdentifier(categoryImage, "drawable", getPackageName());
-        Drawable drawable = getDrawable(resID);
-        imageView.setImageDrawable(drawable);
-        TextView txt = (TextView) findViewById(R.id.cat1);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(1).getName();
-        txt = (TextView) findViewById(R.id.cat2);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(2).getName();
-        txt = (TextView) findViewById(R.id.cat3);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(3).getName();
-        txt = (TextView) findViewById(R.id.cat4);
-        txt.setText(categoryName);
-        }*/
-/*
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // locationManager.requestLocationUpdates(provider, 400, 1, this);
-    }
 
     public void changeResource(View button) {
         button.setSelected(!button.isSelected());
@@ -162,105 +115,44 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    public void addTestSpots(View view) {
-        // Fonctionne bien si le point a été donné par Google Place API
-        // TODO : idem pour un point random qu'on a mis sans recherche de Google Place.
-        Spot spot = new Spot();
+    // SAVED PLACES FRAGMENT
 
-        // On chope le nom du lieu dans la description
-        TextView txt = (TextView) findViewById(R.id.edit_spot_name);
-        String name = txt.getText().toString();
-        if (name.matches("")) {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            String textDate = dateFormat.format(date).toString();
-            name = "Nouveau point ajouté au " + textDate;
+    // EXPLORE FRAGMENT
+
+    // NAVIGATION
+
+
+    public static class SpotsPagerAdapter extends FragmentPagerAdapter {
+
+        private static int NUM_ITEMS = 3;
+        private Context context;
+
+        public SpotsPagerAdapter(FragmentManager fm, Context context) {
+            super(fm);
+            this.context = context;
         }
-        spot.setName(name);
 
-        // Les coordonnées GPS sont issues d'une requete android,
-        // ou de la carte Google.
-        if (markerLocation != null) {
-            Log.d("LOCATION", "Localisation issue de Google");
-            spot.setLongitude(markerLocation.getLongitude());
-            spot.setLatitude(markerLocation.getLatitude());
-        } else if (currentLocation != null) {
-            Log.d("LOCATION", "Localisation issue du GPS");
-            spot.setLongitude(currentLocation.getLongitude());
-            spot.setLatitude(currentLocation.getLatitude());
+        @Override
+        public int getCount() {
+            return NUM_ITEMS;
         }
-        spot.setAddress("");
 
-        SpotDB spotDB = new SpotDB(mCtx);
-        spotDB.insert(spot);
-        Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
-    }
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return "Item " + (position + 1);
+        }
 
-    public void goToSaveSpots(View view) {
-        Intent intent = new Intent(this, SavedPlaces.class);
-        startActivity(intent);
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 1:
+                    return SavedPlacesFragment.newInstance(mCtx,1,"Saved Places");
+                case 2:
+                    return ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
+                default:
+                    return HomeFragment.newInstance(mCtx,0,"Home");
+            }
+        }
+
     }
 }
-*/
-/*
-    public void startMap() {
-        // INIT MAP
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        ArrayList<LocationProvider> providers = new ArrayList<LocationProvider>();
-        ArrayList<String> names = (ArrayList)locationManager.getProviders(true);
-
-        for(String name : names)
-            providers.add(locationManager.getProvider(name));
-
-        Criteria critere = new Criteria();
-        critere.setAccuracy(Criteria.ACCURACY_FINE);
-        critere.setAltitudeRequired(false);
-        critere.setBearingRequired(true);
-        critere.setCostAllowed(false);
-        critere.setPowerRequirement(Criteria.POWER_HIGH);
-        critere.setSpeedRequired(false);
-
-        String provider = locationManager.getBestProvider(critere, true);
-        LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d("chien", "ta mère");
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-
-            @Override
-            public void onLocationChanged(Location location) {
-                Log.d("GPS", "Latitude " + location.getLatitude() + " et longitude " + location.getLongitude());
-            }
-        };
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 90, locationListener);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            // Show rationale and request permission.
->>>>>>> develop
-        }
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId()==0) {
-            Log.d("MAIN ACTIVITY","OnOptionsItemsSelected");
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-}
-*/
