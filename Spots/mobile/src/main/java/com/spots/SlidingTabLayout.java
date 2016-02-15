@@ -122,7 +122,11 @@ public class SlidingTabLayout extends HorizontalScrollView {
     }
 
     /**
+<<<<<<< HEAD
      * Sets the associated view pager. Note that the assumption here is that the pager content
+=======
+     * Sets the associated view pager. Note that the assumption here is that the pager spot_list_fragment
+>>>>>>> e5ba6b2... WIP
      * (number of tabs and tab titles) does not change after this call has been made.
      */
     public void setViewPager(ViewPager viewPager) {
