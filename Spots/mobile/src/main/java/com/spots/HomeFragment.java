@@ -5,10 +5,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -22,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,8 +44,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
+import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
+import com.spots.data.model.Spot;
 
+import java.lang.reflect.Array;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -52,8 +62,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private Context mCtx;
     private String title;
     private int page;
+    private View mView;
     private SupportMapFragment mMapFragment;
     private GoogleMap mMap;
+    private CategoryDB categoryDB;
 
     // newInstance constructor for creating fragment with arguments
     public static HomeFragment newInstance(Context ctx, int page, String title) {
@@ -84,13 +96,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         rl = (RelativeLayout) view.findViewById(R.id.map_layout);
         View map = inflater.inflate(R.layout.map, rl, true);
-/*
-        FragmentView fw = (FragmentView) findViewById( R.id.thefragmentsid );
-        FragmentManager fm = fw.getFragment().getFragmentManager();
-        FragmentManager fm = this.getChildFragmentManager();
-        MapFragment mapFragment = (MapFragment) fm.findFragmentById(R.id.map);
-        //mapFragment.getMapAsync(this);
-*/
+
+        mView = view;
+
         return view;
     }
 
@@ -106,11 +114,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
+    public void onAttach(Context context){
+        super.onAttach (context);
+        mCtx = context;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (mMap == null) {
             mMapFragment.getMapAsync(this);
         }
+
+        displayCategories();
     }
 
     @Override
@@ -121,6 +137,132 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
         mMap = map;
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)));
+    }
+
+
+    private void displayCategories() {
+        try {
+            categoryDB = new CategoryDB(mCtx);
+        } catch (NullPointerException e) {
+            Log.d(TAG,e.getMessage());
+        }
+
+        List<Category> catList = categoryDB.getAll();
+        String categoryName;
+        String categoryImage;
+        ImageView imageView;
+        int resID;
+        Drawable drawable;
+        TextView txt;
+
+        categoryImage = catList.get(0).getLogo();
+        resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            drawable = getResources().getDrawable(resID, mCtx.getTheme());
+        } else {
+            drawable = getResources().getDrawable(resID);
+        }
+        drawable = getResources().getDrawable(resID);
+        imageView = (ImageView) mView.findViewById(R.id.category_image_1);
+        imageView.setImageResource(resID);
+        txt = (TextView) getActivity().findViewById(R.id.cat1);
+        categoryName = catList.get(0).getName();
+        txt.setText(categoryName);
+
+
+        categoryImage = catList.get(1).getLogo();
+        resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            drawable = getResources().getDrawable(resID, mCtx.getTheme());
+        } else {
+            drawable = getResources().getDrawable(resID);
+        }
+        drawable = getResources().getDrawable(resID);
+        imageView = (ImageView) mView.findViewById(R.id.category_image_2);
+        imageView.setImageResource(resID);
+        txt = (TextView) getActivity().findViewById(R.id.cat2);
+        categoryName = catList.get(1).getName();
+        txt.setText(categoryName);
+
+
+        categoryImage = catList.get(2).getLogo();
+        resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            drawable = getResources().getDrawable(resID, mCtx.getTheme());
+        } else {
+            drawable = getResources().getDrawable(resID);
+        }
+        drawable = getResources().getDrawable(resID);
+        imageView = (ImageView) mView.findViewById(R.id.category_image_3);
+        imageView.setImageResource(resID);
+        txt = (TextView) getActivity().findViewById(R.id.cat3);
+        categoryName = catList.get(2).getName();
+        txt.setText(categoryName);
+
+
+        categoryImage = catList.get(3).getLogo();
+        resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            drawable = getResources().getDrawable(resID, mCtx.getTheme());
+        } else {
+            drawable = getResources().getDrawable(resID);
+        }
+        drawable = getResources().getDrawable(resID);
+        imageView = (ImageView) mView.findViewById(R.id.category_image_4);
+        imageView.setImageResource(resID);
+        txt = (TextView) getActivity().findViewById(R.id.cat4);
+        categoryName = catList.get(3).getName();
+        txt.setText(categoryName);
+
+    }
+
+    // Fonction appelée par le clic sur le bouton ADD SPOT
+    public void addSpot(View view) {
+        Spot spot = new Spot();
+
+        // On chope le nom du lieu dans la description
+        TextView txt = (TextView) getActivity().findViewById(R.id.edit_spot_name);
+        String name = txt.getText().toString();
+        if (name.matches("")) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String textDate = dateFormat.format(date).toString();
+            name = "Nouveau point ajouté au " + textDate;
+        }
+        spot.setName(name);
+
+        // Les coordonnées GPS sont issues d'une requete android,
+        // ou de la carte Google.
+        /*if (markerLocation != null) {
+            Log.d("LOCATION", "Localisation issue de Google");
+            spot.setLongitude(markerLocation.getLongitude());
+            spot.setLatitude(markerLocation.getLatitude());
+        } else if (currentLocation != null) {
+            Log.d("LOCATION", "Localisation issue du GPS");
+            spot.setLongitude(currentLocation.getLongitude());
+            spot.setLatitude(currentLocation.getLatitude());
+        }*/
+        spot.setAddress("");
+
+        SpotDB spotDB = new SpotDB(mCtx);
+        spotDB.insert(spot);
+        Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
+    }
+
+    // Fonction appelée par le clic sur une des catégories
+    public void changeResource(View button) {
+        ViewGroup vg = (ViewGroup) getActivity().findViewById(R.id.layout_images);
+        ViewGroup nextChild;
+        View view;
+        // On assigne tous les enfants à pas selected
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            view = nextChild.getChildAt(0);
+            view.setBackgroundResource(R.drawable.round_button);
+            view.setSelected(false);
+        }
+        button.setSelected(true);
+        button.setBackgroundResource(R.drawable.round_button_selected);
     }
 
 }

@@ -26,11 +26,11 @@ public class SpotsSQLiteDB extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
                 + ") values('Drink','beer_category')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
-                + ") values('Eat','SILVERWARE_FORK')");
+                + ") values('Eat','beer_category')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
-                + ") values('Shop','SHOPPING')");
+                + ") values('Shop','beer_category')");
         db.execSQL("INSERT INTO " + CategoryDB.TABLE_NAME + "(" + CategoryDB.INSERT_TABLE_STATEMENT
-                + ") values('Visit','tourism_category.png')");
+                + ") values('Visit','beer_category')");
 
         db.execSQL("INSERT INTO " + SpotDB.TABLE_NAME + "(" + SpotDB.INSERT_TABLE_STATEMENT
                 + ") values(45.28476,9.14034,'Birrificio Lambrate','via Golgi, Milano')");
