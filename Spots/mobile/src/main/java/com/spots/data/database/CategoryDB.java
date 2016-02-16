@@ -13,7 +13,7 @@ public class CategoryDB extends BaseDB {
 
 	public static final String TABLE_NAME = "CATEGORY";
 
-	private static final String ID_FIELD_NAME = "_ID";
+	protected static final String ID_FIELD_NAME = "_ID";
 	private static final String NAME_FIELD_NAME = "NAME";
 	private static final String LOGO_FIELD_NAME = "LOGO";
 

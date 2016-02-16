@@ -6,5 +6,6 @@
     <color name="dark_grey">#E0E0E0</color>
     <color name="main_color">#6FC1A7</color>
     <color name="white">#FFFFFF</color>
+    <color name="primary_material_light_1">#8bc34a</color>
 
 </resources>

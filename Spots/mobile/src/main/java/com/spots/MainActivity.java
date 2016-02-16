@@ -1,5 +1,9 @@
 package com.spots;
 
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.NotificationCompat;
+import android.app.Notification;
+import android.widget.Button;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
