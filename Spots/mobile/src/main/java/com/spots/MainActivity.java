@@ -1,5 +1,6 @@
 package com.spots;
 
+import android.app.Activity;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.NotificationCompat;
 import android.app.Notification;
