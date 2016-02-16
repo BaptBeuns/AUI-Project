@@ -78,7 +78,124 @@ public class HomeFragment extends Fragment {
 
         rl = (RelativeLayout) view.findViewById(R.id.map_layout);
         View map = inflater.inflate(R.layout.map, rl, true);
+
+        // Récupération des catégories à afficher
+        displayCategories();
+
         return view;
     }
 
+
+    private void displayCategories() {
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> catList = categoryDB.getAll();
+        String categoryName;
+        String categoryImage;
+        ImageView imageView;
+        int resID;
+        Drawable drawable;
+        TextView txt;
+
+        Map<int, List<Drawable>> dict;
+        dict.put(0, [R.id.category1, R.id.cat1]);
+        dict.put(1, [R.id.category2, R.id.cat2]);
+        dict.put(2, [R.id.category3, R.id.cat3]);
+        dict.put(3, [R.id.category4, R.id.cat4]);
+
+        for (Map.Entry<String, String> entry : dict.entrySet())
+        {
+            // On récupère le logo de la catégorie
+            categoryImage = catList.get(entry.getKey()).getLogo();
+            drawable = getDrawable(resID);
+            resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+            // On l'affiche dans l'ImageView qui correspond
+            imageView = (ImageView)findViewById(entry.getValue()[0]);
+            imageView.setImageDrawable(drawable);
+            // On affiche aussi le nom de la catégorie en dessous
+            txt = (TextView) findViewById(entry.getValue()[0]);
+            categoryName = catList.get(entry.getKey()).getName();
+            txt.setText(categoryName);
+        }
+
+        // categoryImage = catList.get(0).getLogo();
+        // drawable = getDrawable(resID);
+        // resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+        // imageView = (ImageView)findViewById(R.id.category_image_1);
+        // imageView.setImageDrawable(drawable);
+        // txt = (TextView) findViewById(R.id.cat1);
+        // categoryName = catList.get(0).getName();
+        // txt.setText(categoryName);
+
+        // categoryImage = catList.get(1).getLogo();
+        // drawable = getDrawable(resID);
+        // resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+        // imageView = (ImageView)findViewById(R.id.category_image_2);
+        // imageView.setImageDrawable(drawable);
+        // txt = (TextView) findViewById(R.id.cat2);
+        // categoryName = catList.get(1).getName();
+        // txt.setText(categoryName);
+
+        // categoryImage = catList.get(2).getLogo();
+        // drawable = getDrawable(resID);
+        // resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+        // imageView = (ImageView)findViewById(R.id.category_image_3);
+        // imageView.setImageDrawable(drawable);
+        // txt = (TextView) findViewById(R.id.cat3);
+        // categoryName = catList.get(2).getName();
+        // txt.setText(categoryName);
+
+        // categoryImage = catList.get(3).getLogo();
+        // drawable = getDrawable(resID);
+        // resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
+        // imageView = (ImageView)findViewById(R.id.category_image_4);
+        // imageView.setImageDrawable(drawable);
+        // txt = (TextView) findViewById(R.id.cat4);
+        // categoryName = catList.get(3).getName();
+        // txt.setText(categoryName);
+    }
+
+    // Fonction appelée par le clic sur le bouton ADD SPOT
+    public void addSpot(View view) {
+        Spot spot = new Spot();
+
+        // On chope le nom du lieu dans la description
+        TextView txt = (TextView) findViewById(R.id.edit_spot_name);
+        String name = txt.getText().toString();
+        if (name.matches("")) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String textDate = dateFormat.format(date).toString();
+            name = "Nouveau point ajouté au " + textDate;
+        }
+        spot.setName(name);
+
+        // Les coordonnées GPS sont issues d'une requete android,
+        // ou de la carte Google.
+        if (markerLocation != null) {
+            Log.d("LOCATION", "Localisation issue de Google");
+            spot.setLongitude(markerLocation.getLongitude());
+            spot.setLatitude(markerLocation.getLatitude());
+        } else if (currentLocation != null) {
+            Log.d("LOCATION", "Localisation issue du GPS");
+            spot.setLongitude(currentLocation.getLongitude());
+            spot.setLatitude(currentLocation.getLatitude());
+        }
+        spot.setAddress("");
+
+        SpotDB spotDB = new SpotDB(mCtx);
+        spotDB.insert(spot);
+        Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
+    }
+
+    // Fonction appelée par le clic sur une des catégories
+    public void changeResource(View button) {
+        ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
+        // On assigne tous les enfants à pas selected
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = vg.getChildAt(i).getChildAt(0).setBackgroundResource(R.drawable.round_button);
+            nextChild.setSelected(false);
+        }
+        button.setSelected(true);
+        button.setBackgroundResource(R.drawable.round_button_selected);
+    }
 }

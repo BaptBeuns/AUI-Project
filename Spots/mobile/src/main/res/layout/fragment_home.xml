@@ -131,7 +131,7 @@
                     android:layout_weight="1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                    <RelativeLayout
+                    <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         android:layout_weight="1">
@@ -141,8 +141,8 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="CAT1"/>
-                    </RelativeLayout>
-                    <RelativeLayout
+                    </LinearLayout>
+                    <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         android:layout_weight="1">
@@ -152,8 +152,8 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="CAT2"/>
-                    </RelativeLayout>
-                    <RelativeLayout
+                    </LinearLayout>
+                    <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         android:layout_weight="1">
@@ -163,8 +163,8 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="CAT3"/>
-                    </RelativeLayout>
-                    <RelativeLayout
+                    </LinearLayout>
+                    <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         android:layout_weight="1">
@@ -174,8 +174,8 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="CAT4"/>
-                    </RelativeLayout>
-                    <RelativeLayout
+                    </LinearLayout>
+                    <LinearLayout
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         android:layout_weight="1">
@@ -184,7 +184,7 @@
                             android:layout_height="match_parent"
                             android:gravity="center"
                             android:text="More"/>
-                    </RelativeLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
             <Button
@@ -199,7 +199,7 @@
                 android:elevation="0dp"
                 android:textColor="@color/white"
                 android:layout_centerHorizontal="true"
-                android:onClick="addTestSpots"
+                android:onClick="addSpot"
                 android:layout_alignParentBottom="true">
             </Button>
 
