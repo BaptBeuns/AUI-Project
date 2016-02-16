@@ -24,7 +24,7 @@ public class CustomAdapter extends BaseAdapter {
     Context context;
     int [] imageId;
     private static LayoutInflater inflater=null;
-    public CustomAdapter(Activity _activity, SavedPlaces savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
+    public CustomAdapter(Activity _activity, Context savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
         // TODO Auto-generated constructor stub
         activity = _activity;
         titleResult=prgmTitleList;

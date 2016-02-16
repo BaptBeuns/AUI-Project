@@ -75,7 +75,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     private Location markerLocation;
     String provider;
 
-
     // newInstance constructor for creating fragment with arguments
     public static HomeFragment newInstance(Context ctx, int page, String title) {
         HomeFragment fragmentFirst = new HomeFragment();
