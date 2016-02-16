@@ -1,5 +1,9 @@
 package com.spots;
 
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.NotificationCompat;
+import android.app.Notification;
+import android.widget.Button;
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -103,6 +107,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Criteria criteria = new Criteria();
         provider = locationManager.getBestProvider(criteria, false);
         markerLocation = new Location(provider);
+
+        Button mButton = (Button) findViewById(R.id.button);
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Notification notification = new NotificationCompat.Builder(getApplication())
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("Hello World")
+                        .setContentText("My first Android Wear notification")
+                        .extend(
+                                new NotificationCompat.WearableExtender().setHintShowBackgroundOnly(true))
+                        .build();
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplication());
+                int notificationId = 1;
+                notificationManager.notify(notificationId, notification);
+            }
+        });
 
         // Gere la carte
         MapFragment mapFragment = (MapFragment) getFragmentManager()
