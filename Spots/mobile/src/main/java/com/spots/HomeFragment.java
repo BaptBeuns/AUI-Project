@@ -117,12 +117,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        mPlaceAutoFragment.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         FragmentManager fm = getChildFragmentManager();
@@ -146,15 +140,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 .build();
 
         // EventListener pour le Place selector
-        fm = getChildFragmentManager();
-        mPlaceAutoFragment = (SupportPlaceAutocompleteFragment) fm.findFragmentById(R.id.top_layout);
+        FragmentManager fm2 = getChildFragmentManager();
+        mPlaceAutoFragment = (SupportPlaceAutocompleteFragment) fm2.findFragmentById(R.id.place_autocomplete_fragment);
         if (mPlaceAutoFragment == null) {
+            Log.d(TAG, "On est en train d'en remettre un...");
             mPlaceAutoFragment = new SupportPlaceAutocompleteFragment();
-            fm.beginTransaction().replace(R.id.top_layout, mPlaceAutoFragment).commit();
+            fm2.beginTransaction().replace(R.id.place_autocomplete_fragment, mPlaceAutoFragment).commit();
         }
+        Log.d(TAG, mPlaceAutoFragment.toString());
         mPlaceAutoFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
+                Log.i(TAG, "Place: " + place.getName());
+
                 // On remplit l'EditView avec le nom du lieu
                 TextView edit = (TextView) mView.findViewById(R.id.edit_spot_name);
                 edit.setText(place.getName());
@@ -196,7 +194,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         }
         displayCategories();
     }
-    
+
     @Override
     public void onMapReady(GoogleMap map) {
         if (ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
