@@ -129,7 +129,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
+/*
         // Crée une entité de Google API pour pouvoir faire des requêtes à Google Place
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -185,7 +185,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("LOCATION", currentLocation.toString());
         // Register the listener with the Location Manager to receive location updates
         // locationManager.requestLocationUpdates(provider, 60000, 200, locationListener);
-
+*/
         // Récupération des catégories à afficher
         CategoryDB categoryDB = new CategoryDB(mCtx);
         List<Category> catList = categoryDB.getAll();
@@ -256,56 +256,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(this, SavedPlaces.class);
         startActivity(intent);
     }
-/*
-    public void startMap() {
-        // INIT MAP
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        ArrayList<LocationProvider> providers = new ArrayList<LocationProvider>();
-        ArrayList<String> names = (ArrayList)locationManager.getProviders(true);
 
-        for(String name : names)
-            providers.add(locationManager.getProvider(name));
-
-        Criteria critere = new Criteria();
-        critere.setAccuracy(Criteria.ACCURACY_FINE);
-        critere.setAltitudeRequired(false);
-        critere.setBearingRequired(true);
-        critere.setCostAllowed(false);
-        critere.setPowerRequirement(Criteria.POWER_HIGH);
-        critere.setSpeedRequired(false);
-
-        String provider = locationManager.getBestProvider(critere, true);
-        LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d("chien", "ta mère");
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-
-            @Override
-            public void onLocationChanged(Location location) {
-                Log.d("GPS", "Latitude " + location.getLatitude() + " et longitude " + location.getLongitude());
-            }
-        };
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 90, locationListener);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            // Show rationale and request permission.
-        }
-
-    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

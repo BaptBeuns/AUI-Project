@@ -168,11 +168,6 @@
 
         </RelativeLayout>
 
-        <include
-            android:id="@+id/activity_bottom_toolbar"
-            layout="@layout/activity_bottom_toolbar"
-            />
-
     </LinearLayout>
 
 

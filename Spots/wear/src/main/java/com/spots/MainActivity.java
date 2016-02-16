@@ -3,10 +3,14 @@ package com.spots;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
+    private String TAG = "WATCH_MAIN";
     private TextView mTextView;
 
     @Override
@@ -20,5 +24,16 @@ public class MainActivity extends Activity {
                 mTextView = (TextView) stub.findViewById(R.id.text);
             }
         });
+    }
+
+    public void changeResource(View button) {
+        ViewGroup vg = (ViewGroup) findViewById(R.id.list_category);
+        ViewGroup nextChild;
+        // On assigne tous les enfants à pas selected
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            nextChild.setSelected(false);
+        }
+        button.setSelected(true);
     }
 }

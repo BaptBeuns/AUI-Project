@@ -1,9 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context=".MainActivity" tools:deviceIds="wear_round">
+    android:layout_height="match_parent" tools:context=".MainActivity" tools:deviceIds="wear_round"
+    android:background="#ffffff">
 
-    <TextView android:id="@+id/text" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true" android:text="@string/hello_round" />
+    <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/location"
+        android:text="Geolocation Loading..."
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:textColor="#000000" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Place"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/button"
+        android:background="#6FC1A7" />
+
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/list_category">
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/dj"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:id="@+id/imageButton6"
+        android:layout_alignTop="@+id/imageButton4"
+        android:layout_alignStart="@+id/imageButton0"
+        android:onClick="changeResource"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/bag"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:id="@+id/imageButton0"
+        android:layout_alignTop="@+id/imageButton"
+        android:layout_alignEnd="@+id/location" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/sport"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:id="@+id/imageButton"
+        android:layout_alignTop="@+id/imageButton2"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/waiter"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:layout_alignTop="@+id/imageButton3"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/imageButton4" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/beer"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:id="@+id/imageButton2"
+        android:layout_above="@+id/imageButton3"
+        android:layout_alignStart="@+id/imageButton3"
+        android:layout_marginBottom="22dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/monument"
+        android:background="@drawable/add_button_selector"
+        android:selected="false"
+        android:layout_above="@+id/button"
+        android:layout_alignStart="@+id/location"
+        android:layout_marginBottom="18dp"
+        android:id="@+id/imageButton3" />
+</LinearLayout>
+
 </RelativeLayout>
