@@ -126,10 +126,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         private static int NUM_ITEMS = 3;
         private Context context;
+        SavedPlacesFragment savedPlacesFragment;
+        ExploreFragment exploreFragment;
+        HomeFragment homeFragment;
 
         public SpotsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context = context;
+            savedPlacesFragment = SavedPlacesFragment.newInstance(context,1,"Saved Places");
+            exploreFragment = ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
+            homeFragment = HomeFragment.newInstance(mCtx,0,"Home");
         }
 
         @Override
@@ -146,11 +152,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         public Fragment getItem(int position) {
             switch (position) {
                 case 1:
-                    return SavedPlacesFragment.newInstance(mCtx,1,"Saved Places");
+                    return savedPlacesFragment;
                 case 2:
-                    return ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
+                    return exploreFragment;
                 default:
-                    return HomeFragment.newInstance(mCtx,0,"Home");
+                    return homeFragment;
             }
         }
 

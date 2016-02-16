@@ -2,6 +2,7 @@ package com.spots;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -33,21 +34,26 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
 import com.spots.data.model.Category;
 
 import java.util.List;
+import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     private String TAG = "HOME_FRAGMENT";
     private Context mCtx;
     private String title;
     private int page;
+    private SupportMapFragment mMapFragment;
+    private GoogleMap mMap;
 
     // newInstance constructor for creating fragment with arguments
     public static HomeFragment newInstance(Context ctx, int page, String title) {
@@ -78,7 +84,43 @@ public class HomeFragment extends Fragment {
 
         rl = (RelativeLayout) view.findViewById(R.id.map_layout);
         View map = inflater.inflate(R.layout.map, rl, true);
+/*
+        FragmentView fw = (FragmentView) findViewById( R.id.thefragmentsid );
+        FragmentManager fm = fw.getFragment().getFragmentManager();
+        FragmentManager fm = this.getChildFragmentManager();
+        MapFragment mapFragment = (MapFragment) fm.findFragmentById(R.id.map);
+        //mapFragment.getMapAsync(this);
+*/
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FragmentManager fm = getChildFragmentManager();
+        mMapFragment = (SupportMapFragment) fm.findFragmentById(R.id.map);
+        if (mMapFragment == null) {
+            mMapFragment = SupportMapFragment.newInstance();
+            fm.beginTransaction().replace(R.id.map, mMapFragment).commit();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mMap == null) {
+            mMapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        if (ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            map.setMyLocationEnabled(true);
+            return;
+        }
+        mMap = map;
+        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)));
     }
 
 }
