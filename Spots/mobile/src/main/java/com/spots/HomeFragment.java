@@ -196,17 +196,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         }
         displayCategories();
     }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        Fragment fragment = (fm.findFragmentById(R.id.map));
-        FragmentTransaction ft = fm.beginTransaction();
-        ft.remove(fragment);
-        ft.commit();
-    }
-
+    
     @Override
     public void onMapReady(GoogleMap map) {
         if (ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
