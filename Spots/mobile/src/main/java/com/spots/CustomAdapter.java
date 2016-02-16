@@ -1,5 +1,6 @@
 package com.spots;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,14 +13,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.spots.data.model.Spot;
+
 public class CustomAdapter extends BaseAdapter {
+
+    public int lastSelectedSpotIndex;
+    private Activity activity;
     String [] titleResult;
     String [] detailResult;
     Context context;
     int [] imageId;
     private static LayoutInflater inflater=null;
-    public CustomAdapter(SavedPlaces savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
+    public CustomAdapter(Activity _activity, SavedPlaces savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
         // TODO Auto-generated constructor stub
+        activity = _activity;
         titleResult=prgmTitleList;
         detailResult=prgmDetailList;
         context=savedPlaces;
@@ -67,10 +74,9 @@ public class CustomAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                Toast.makeText(context, "You Clicked "+titleResult[position], Toast.LENGTH_LONG).show();
-//                SavedPlaces savedPlacesObject=new SavedPlaces();
-//                savedPlacesObject.displayGoogleMapsIntentForSpotAtIndex(position);
-
+                lastSelectedSpotIndex=position;
+                ((SavedPlaces)activity).modelInfo(position);
+                //Toast.makeText(context, "You Clicked "+titleResult[position], Toast.LENGTH_LONG).show();
             }
         });
         return rowView;
