@@ -345,6 +345,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         }
         spot.setAddress("");
 
+        // Get category
+        ViewGroup vg = (ViewGroup) mView.findViewById(R.id.layout_images);
+        ViewGroup nextChild;
+        View view;
+        // On assigne tous les enfants à pas selected
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            if (nextChild.getChildCount() > 0) {
+                view = nextChild.getChildAt(0);
+                if (view.isSelected()) {
+                    spot.setCategoryId(i);
+                    break;
+                }
+            }
+        }
+
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(spot);
         Toast.makeText(mCtx, "Point " + name + " Saved!", Toast.LENGTH_SHORT).show();
