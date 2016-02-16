@@ -4,6 +4,7 @@ package com.spots;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -15,12 +16,14 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -34,6 +37,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -56,16 +60,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback {
+public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private String TAG = "HOME_FRAGMENT";
     private Context mCtx;
-    private String title;
-    private int page;
     private View mView;
     private SupportMapFragment mMapFragment;
+    public SupportPlaceAutocompleteFragment mPlaceAutoFragment;
     private GoogleMap mMap;
     private CategoryDB categoryDB;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationManager locationManager;
+    private Location currentLocation;
+    private Location markerLocation;
+    String provider;
+
 
     // newInstance constructor for creating fragment with arguments
     public static HomeFragment newInstance(Context ctx, int page, String title) {
@@ -81,8 +90,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        page = getArguments().getInt("someInt", 0);
-        title = getArguments().getString("someTitle");
     }
 
     // Inflate the view for the fragment based on layout XML
@@ -97,9 +104,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         rl = (RelativeLayout) view.findViewById(R.id.map_layout);
         View map = inflater.inflate(R.layout.map, rl, true);
 
+        View btn = (Button) view.findViewById(R.id.button);
+        btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                addSpot();
+            }
+        });
+
         mView = view;
 
         return view;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mPlaceAutoFragment.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -111,6 +131,55 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             mMapFragment = SupportMapFragment.newInstance();
             fm.beginTransaction().replace(R.id.map, mMapFragment).commit();
         }
+
+        locationManager = (LocationManager) mCtx.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        provider = locationManager.getBestProvider(criteria, false);
+        markerLocation = new Location(provider);
+
+        // Crée une entité de Google API pour pouvoir faire des requêtes à Google Place
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(mCtx)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this.getActivity(), this)
+                .build();
+
+        // EventListener pour le Place selector
+        fm = getChildFragmentManager();
+        mPlaceAutoFragment = (SupportPlaceAutocompleteFragment) fm.findFragmentById(R.id.top_layout);
+        if (mPlaceAutoFragment == null) {
+            mPlaceAutoFragment = new SupportPlaceAutocompleteFragment();
+            fm.beginTransaction().replace(R.id.top_layout, mPlaceAutoFragment).commit();
+        }
+        mPlaceAutoFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // On remplit l'EditView avec le nom du lieu
+                TextView edit = (TextView) mView.findViewById(R.id.edit_spot_name);
+                edit.setText(place.getName());
+
+                // On recentre la carte
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
+
+                // On place un marker
+                Log.d("LOCATION MARKER", Double.toString(place.getLatLng().latitude));
+
+                markerLocation.setLatitude(place.getLatLng().latitude);
+                markerLocation.setLongitude(place.getLatLng().longitude);
+                Marker newMarker = mMap.addMarker(new MarkerOptions()
+                        .title((String) place.getName())
+                        .snippet((String) place.getAddress())
+                        .position(place.getLatLng()));
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("GOOGLE PLACES", "An error occurred: " + status);
+            }
+        });
+
     }
 
     @Override
@@ -125,8 +194,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         if (mMap == null) {
             mMapFragment.getMapAsync(this);
         }
-
         displayCategories();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        Fragment fragment = (fm.findFragmentById(R.id.map));
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.remove(fragment);
+        ft.commit();
     }
 
     @Override
@@ -136,7 +214,32 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
         mMap = map;
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)));
+
+        if (ActivityCompat.checkSelfPermission(mCtx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mCtx, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        currentLocation = locationManager.getLastKnownLocation(provider);
+        Log.d("LOCATION", currentLocation.toString());
+
+        // On recentre la carte
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 17));
+
+        // On place un marker
+        markerLocation.setLatitude(currentLocation.getLatitude());
+        markerLocation.setLongitude(currentLocation.getLongitude());
+        Marker newMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+    }
+
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.d("MAIN ACTIVITY", "Connetion Failed");
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        // Called when a new location is found by the network location provider.
+        currentLocation = location;
+        Log.d("ONLOCATIONCHANGED", currentLocation.toString());
     }
 
 
@@ -217,11 +320,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     // Fonction appelée par le clic sur le bouton ADD SPOT
-    public void addSpot(View view) {
+    public void addSpot() {
         Spot spot = new Spot();
 
         // On chope le nom du lieu dans la description
-        TextView txt = (TextView) getActivity().findViewById(R.id.edit_spot_name);
+        TextView txt = (TextView) mView.findViewById(R.id.edit_spot_name);
         String name = txt.getText().toString();
         if (name.matches("")) {
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -233,7 +336,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         // Les coordonnées GPS sont issues d'une requete android,
         // ou de la carte Google.
-        /*if (markerLocation != null) {
+        if (markerLocation != null) {
             Log.d("LOCATION", "Localisation issue de Google");
             spot.setLongitude(markerLocation.getLongitude());
             spot.setLatitude(markerLocation.getLatitude());
@@ -241,7 +344,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             Log.d("LOCATION", "Localisation issue du GPS");
             spot.setLongitude(currentLocation.getLongitude());
             spot.setLatitude(currentLocation.getLatitude());
-        }*/
+        }
         spot.setAddress("");
 
         SpotDB spotDB = new SpotDB(mCtx);

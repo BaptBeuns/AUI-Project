@@ -2,6 +2,7 @@ package com.spots;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -30,19 +31,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 // http://webdesignergeeks.com/mobile/android/geting-current-location-in-android-application-using-gps/
 // http://www.vogella.com/tutorials/AndroidLocationAPI/article.html#locationapi
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MainActivity extends AppCompatActivity {
 
     public static String PACKAGE_NAME;
     private static String TAG = "MAIN_ACTIVITY";
 
-    private static Context mCtx;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationManager locationManager;
-    private Location currentLocation;
-    private Location markerLocation;
-    String provider;
-    private MapFragment mapFragment;
-    private GoogleMap mMap;
     private FragmentPagerAdapter adapterViewPager;
 
 
@@ -86,26 +79,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     // HOME FRAGMENT
 
-    @Override
-    public void onMapReady(GoogleMap map) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            map.setMyLocationEnabled(true);
-            return;
-        }
-        mMap = map;
-    }
-
-    public void onConnectionFailed(ConnectionResult result) {
-        Log.d("MAIN ACTIVITY", "Connetion Failed");
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        // Called when a new location is found by the network location provider.
-        currentLocation = location;
-        Log.d("ONLOCATIONCHANGED", currentLocation.toString());
-    }
-
     // Fonction appelée par le clic sur une des catégories
     public void changeResource(View button) {
         ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
@@ -123,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         button.setBackgroundResource(R.drawable.round_button_selected);
     }
 
+
+
     // SAVED PLACES FRAGMENT
 
     // EXPLORE FRAGMENT
@@ -132,18 +107,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public static class SpotsPagerAdapter extends FragmentPagerAdapter {
 
-        private static int NUM_ITEMS = 3;
+        private static int NUM_ITEMS = 2;
         private Context context;
         SavedPlacesFragment savedPlacesFragment;
-        ExploreFragment exploreFragment;
+        //ExploreFragment exploreFragment;
         HomeFragment homeFragment;
 
         public SpotsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context = context;
             savedPlacesFragment = SavedPlacesFragment.newInstance(context,1,"Saved Places");
-            exploreFragment = ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
-            homeFragment = HomeFragment.newInstance(mCtx,0,"Home");
+            //exploreFragment = ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
+            homeFragment = HomeFragment.newInstance(context,0,"Home");
         }
 
         @Override
@@ -153,7 +128,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return "Item " + (position + 1);
+            switch (position) {
+                case 1:
+                    return new String("SAVED PLACES");
+                default:
+                    return new String("ADD");
+            }
         }
 
         @Override
@@ -161,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             switch (position) {
                 case 1:
                     return savedPlacesFragment;
-                case 2:
-                    return exploreFragment;
+                //case 2:
+                //    return exploreFragment;
                 default:
                     return homeFragment;
             }
