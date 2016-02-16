@@ -15,6 +15,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -105,14 +106,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("ONLOCATIONCHANGED", currentLocation.toString());
     }
 
+    // Fonction appelée par le clic sur une des catégories
     public void changeResource(View button) {
-        button.setSelected(!button.isSelected());
-
-        if (button.isSelected()) {
-            button.setBackgroundResource(R.drawable.round_button_selected);
-        } else {
-            button.setBackgroundResource(R.drawable.round_button);
+        ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
+        ViewGroup nextChild;
+        View view;
+        // On assigne tous les enfants à pas selected
+        Log.d(TAG, Double.toString(vg.getChildCount()));
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            view = nextChild.getChildAt(0);
+            view.setBackgroundResource(R.drawable.round_button);
+            view.setSelected(false);
         }
+        button.setSelected(true);
+        button.setBackgroundResource(R.drawable.round_button_selected);
     }
 
     // SAVED PLACES FRAGMENT

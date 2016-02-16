@@ -249,20 +249,4 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
     }
 
-    // Fonction appelée par le clic sur une des catégories
-    public void changeResource(View button) {
-        ViewGroup vg = (ViewGroup) getActivity().findViewById(R.id.layout_images);
-        ViewGroup nextChild;
-        View view;
-        // On assigne tous les enfants à pas selected
-        for(int i=0; i<vg.getChildCount(); ++i) {
-            nextChild = (ViewGroup) vg.getChildAt(i);
-            view = nextChild.getChildAt(0);
-            view.setBackgroundResource(R.drawable.round_button);
-            view.setSelected(false);
-        }
-        button.setSelected(true);
-        button.setBackgroundResource(R.drawable.round_button_selected);
-    }
-
 }
