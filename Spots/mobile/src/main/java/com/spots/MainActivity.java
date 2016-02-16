@@ -59,8 +59,11 @@ public class MainActivity extends AppCompatActivity {
             // This method will be invoked when a new page becomes selected.
             @Override
             public void onPageSelected(int position) {
-                Toast.makeText(MainActivity.this,
-                        "Selected page position: " + position, Toast.LENGTH_SHORT).show();
+                String title = (String)adapterViewPager.getPageTitle(position);
+                if(title.equals("SAVED PLACES")) {
+                    Log.d(TAG,"on Update List");
+                    ((SavedPlacesFragment)adapterViewPager.getItem(position)).updateListView();
+                }
             }
 
             // This method will be invoked when the current page is scrolled
@@ -93,9 +96,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, Double.toString(vg.getChildCount()));
         for(int i=0; i<vg.getChildCount(); ++i) {
             nextChild = (ViewGroup) vg.getChildAt(i);
-            view = nextChild.getChildAt(0);
-            view.setBackgroundResource(R.drawable.round_button);
-            view.setSelected(false);
+            if (nextChild.getChildCount() > 0) {
+                view = nextChild.getChildAt(0);
+                view.setBackgroundResource(R.drawable.round_button);
+                view.setSelected(false);
+            }
         }
         button.setSelected(true);
         button.setBackgroundResource(R.drawable.round_button_selected);
@@ -146,8 +151,6 @@ public class MainActivity extends AppCompatActivity {
             switch (position) {
                 case 1:
                     return savedPlacesFragment;
-                //case 2:
-                //    return exploreFragment;
                 default:
                     return homeFragment;
             }

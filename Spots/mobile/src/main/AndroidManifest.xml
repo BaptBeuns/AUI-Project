@@ -30,11 +30,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SavedPlaces"
-            android:label="Saved Places">
-
-        </activity>
-        <activity
             android:name=".ExploreActivity"
             android:label="@string/title_activity_explore"></activity>
         <!--

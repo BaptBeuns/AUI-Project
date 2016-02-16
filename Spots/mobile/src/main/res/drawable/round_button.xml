@@ -9,5 +9,5 @@
         android:color="@color/dark_grey" />
     <solid
         android:color="@color/light_grey"
-        android:elevation="1dp"/>
+        android:elevation="0dp"/>
 </shape>

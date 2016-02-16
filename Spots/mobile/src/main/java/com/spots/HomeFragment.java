@@ -45,6 +45,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
@@ -60,7 +61,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener, PlaceSelectionListener {
 
     private String TAG = "HOME_FRAGMENT";
     private Context mCtx;
@@ -147,7 +148,29 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
             fm2.beginTransaction().replace(R.id.place_autocomplete_fragment, mPlaceAutoFragment).commit();
         }
         Log.d(TAG, mPlaceAutoFragment.toString());
-        mPlaceAutoFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        mPlaceAutoFragment.setOnPlaceSelectedListener(this);
+    }
+
+    @Override
+    public void onAttach(Context context){
+        super.onAttach (context);
+        mCtx = context;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mMap == null) {
+            mMapFragment.getMapAsync(this);
+        }
+        displayCategories();
+    }
+
+    @Override
+    public void onPlaceSelected(Place place) {
+        Log.i(TAG, "Place Selected: " + place.getName());
+        /*
+         {
             @Override
             public void onPlaceSelected(Place place) {
                 Log.i(TAG, "Place: " + place.getName());
@@ -170,28 +193,16 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                         .position(place.getLatLng()));
             }
 
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i("GOOGLE PLACES", "An error occurred: " + status);
-            }
+
         });
+         */
 
     }
 
     @Override
-    public void onAttach(Context context){
-        super.onAttach (context);
-        mCtx = context;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mMap == null) {
-            mMapFragment.getMapAsync(this);
-        }
-        displayCategories();
+    public void onError(Status status) {
+        // TODO: Handle the error.
+        Log.i("GOOGLE PLACES", "An error occurred: " + status);
     }
 
     @Override
@@ -317,7 +328,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             String textDate = dateFormat.format(date).toString();
-            name = "Nouveau point ajouté au " + textDate;
+            name = "Spot added on " + textDate;
         }
         spot.setName(name);
 
@@ -336,7 +347,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(spot);
-        Toast.makeText(mCtx, "Le point " + name + " a bien été enregistré", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mCtx, "Point " + name + " Saved!", Toast.LENGTH_SHORT).show();
+
     }
 
 }

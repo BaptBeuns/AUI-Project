@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -29,7 +30,12 @@ import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class SavedPlacesFragment extends Fragment {
     // Store instance variables
@@ -38,6 +44,9 @@ public class SavedPlacesFragment extends Fragment {
     private View mView;
     private String title;
     private int page;
+    private List<Spot> spotList;
+    public List<Category> categoryList;
+    public ListView listView;
 
     // newInstance constructor for creating fragment with arguments
     public static SavedPlacesFragment newInstance(Context ctx, int page, String title) {
@@ -71,36 +80,11 @@ public class SavedPlacesFragment extends Fragment {
 
         mView = view;
 
-        SpotDB spotDatabase = new SpotDB(mCtx);
-        List<Spot> spotList=spotDatabase.getAll();
-        CategoryDB categoryDatabase = new CategoryDB(mCtx);
-        List<Category> categoryList=categoryDatabase.getAll();
-
-        System.out.println(spotList);
-        if (spotList.size()>0) {
-
-            String[] titlesArray = new String[spotList.size()];
-            String[] adressesArray = new String[spotList.size()];
-            int[] imagesArray = new int[spotList.size()];
-
-            for (int i=0;i<titlesArray.length;i++) {
-
-                Spot spot=spotList.get(i);
-                Category category= categoryList.get(spot.getCategoryId());
-
-                titlesArray[i]=spot.getName();
-                adressesArray[i]=spot.getAddress();
-                imagesArray[i]=getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
-
-                Log.d("category is", Integer.toString(spot.getCategoryId()));
-            }
-
-            CustomAdapter adapter = new CustomAdapter(getActivity(), mCtx, titlesArray, adressesArray, imagesArray);
-            final ListView listView = (ListView) mView.findViewById(R.id.savedSpotsList);
-            listView.setAdapter(adapter);
-        }
+        updateListView();
 
         // Set eventlisteners on click
+        // Doesn't work in fragments for the moment
+        /*
         ViewGroup vg = (ViewGroup) mView.findViewById(R.id.savedSpotsList);
         ViewGroup nextChild;
         for(int i=0; i<vg.getChildCount(); ++i) {
@@ -113,9 +97,41 @@ public class SavedPlacesFragment extends Fragment {
                     openBottomSheet(mView);
                 }
             });
+        }*/
+        return view;
+    }
+
+    protected void updateListView() {
+        SpotDB spotDatabase = new SpotDB(mCtx);
+        spotList=spotDatabase.getAll();
+        CategoryDB categoryDatabase = new CategoryDB(mCtx);
+        categoryList=categoryDatabase.getAll();
+
+        if (spotList.size()>0) {
+            String[] titlesArray = new String[spotList.size()];
+            String[] adressesArray = new String[spotList.size()];
+            int[] imagesArray = new int[spotList.size()];
+
+            for (int i = 0; i < titlesArray.length; i++) {
+
+                Spot spot = spotList.get(i);
+                if (spot.getCategoryId() < 0 || spot.getCategoryId() > 5) {
+                    spot.setCategoryId(5);
+                }
+                Category category = categoryList.get(spot.getCategoryId());
+
+                titlesArray[i] = spot.getName();
+                adressesArray[i] = spot.getAddress();
+                imagesArray[i] = getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
+
+                Log.d("category is", Integer.toString(spot.getCategoryId()));
+            }
+
+            CustomAdapter adapter = new CustomAdapter(getActivity(), mCtx, titlesArray, adressesArray, imagesArray);
+            listView = (ListView) mView.findViewById(R.id.savedSpotsList);
+            listView.setAdapter(adapter);
         }
 
-        return view;
     }
 
 
@@ -168,7 +184,6 @@ public class SavedPlacesFragment extends Fragment {
                 mBottomSheetDialog.dismiss();
             }
         });
-
 
     }
 }

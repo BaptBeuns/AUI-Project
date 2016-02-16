@@ -3,7 +3,7 @@ package com.spots.data.model;
 public class Spot {
 
 	private static int    NO_ID = -1;
-    private static int    NO_CATEGORY_ID = -1;
+    private static int    NO_CATEGORY_ID = 5;
     private static int    NO_LONGITUDE = -1;
 	private static int    NO_LATITUDE = -1;
 	private static boolean NO_FILTER = true;

@@ -75,7 +75,6 @@ public class CustomAdapter extends BaseAdapter {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 lastSelectedSpotIndex=position;
-                ((SavedPlaces)activity).modelInfo(position);
                 //Toast.makeText(context, "You Clicked "+titleResult[position], Toast.LENGTH_LONG).show();
             }
         });
