@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     return new String("SAVED PLACES");
                 default:
-                    return new String("ADD");
+                    return new String("HOME");
             }
         }
 
