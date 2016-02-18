@@ -1,18 +1,7 @@
 package com.spots;
 
-import android.app.Activity;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.app.NotificationCompat;
-import android.app.Notification;
-import android.widget.Button;
-import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,14 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
 
 // http://developer.android.com/guide/topics/location/strategies.html
 // http://developer.android.com/reference/android/location/LocationManager.html#requestLocationUpdates%28java.lang.String,%20long,%20float,%20android.app.PendingIntent%29
@@ -42,12 +27,17 @@ public class MainActivity extends AppCompatActivity {
     private static String TAG = "MAIN_ACTIVITY";
 
     private FragmentPagerAdapter adapterViewPager;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_base);
+        setContentView(R.layout.activity_main);
         PACKAGE_NAME = getApplicationContext().getPackageName();
 
         ViewPager vpPager = (ViewPager) findViewById(R.id.viewpager);
@@ -59,10 +49,10 @@ public class MainActivity extends AppCompatActivity {
             // This method will be invoked when a new page becomes selected.
             @Override
             public void onPageSelected(int position) {
-                String title = (String)adapterViewPager.getPageTitle(position);
-                if(title.equals("SAVED PLACES")) {
-                    Log.d(TAG,"on Update List");
-                    ((SavedPlacesFragment)adapterViewPager.getItem(position)).updateListView();
+                String title = (String) adapterViewPager.getPageTitle(position);
+                if (title.equals("SAVED PLACES")) {
+                    Log.d(TAG, "on Update List");
+                    ((SavedPlacesFragment) adapterViewPager.getItem(position)).updateListView();
                 }
             }
 
@@ -79,11 +69,30 @@ public class MainActivity extends AppCompatActivity {
                 // Code goes here
             }
         });
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.spots/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
     }
     // HOME FRAGMENT
 
@@ -94,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         View view;
         // On assigne tous les enfants à pas selected
         Log.d(TAG, Double.toString(vg.getChildCount()));
-        for(int i=0; i<vg.getChildCount(); ++i) {
+        for (int i = 0; i < vg.getChildCount(); ++i) {
             nextChild = (ViewGroup) vg.getChildAt(i);
             if (nextChild.getChildCount() > 0) {
                 view = nextChild.getChildAt(0);
@@ -106,6 +115,25 @@ public class MainActivity extends AppCompatActivity {
         button.setBackgroundResource(R.drawable.round_button_selected);
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.spots/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
 
 
     // SAVED PLACES FRAGMENT
@@ -120,15 +148,15 @@ public class MainActivity extends AppCompatActivity {
         private static int NUM_ITEMS = 2;
         private Context context;
         SavedPlacesFragment savedPlacesFragment;
-        //ExploreFragment exploreFragment;
+        ExploreFragment exploreFragment;
         HomeFragment homeFragment;
 
         public SpotsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
             this.context = context;
-            savedPlacesFragment = SavedPlacesFragment.newInstance(context,1,"Saved Places");
-            //exploreFragment = ExploreFragment.newInstance(mCtx,2,"Explore Fragment");
-            homeFragment = HomeFragment.newInstance(context,0,"Home");
+            savedPlacesFragment = SavedPlacesFragment.newInstance(context, 1, "Saved Places");
+            exploreFragment = ExploreFragment.newInstance(context, 2, "Explore Fragment");
+            homeFragment = HomeFragment.newInstance(context, 0, "Home");
         }
 
         @Override
@@ -139,16 +167,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
+                case 2:
+                    return exploreFragment.FRAGMENT_TITLE;
                 case 1:
-                    return new String("SAVED PLACES");
+                    return savedPlacesFragment.FRAGMENT_TITLE;
                 default:
-                    return new String("HOME");
+                    return homeFragment.FRAGMENT_TITLE;
             }
         }
 
         @Override
         public Fragment getItem(int position) {
             switch (position) {
+                case 2:
+                    return exploreFragment;
                 case 1:
                     return savedPlacesFragment;
                 default:

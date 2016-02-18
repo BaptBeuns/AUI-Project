@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 public class ExploreFragment extends Fragment {
 
+    protected final String FRAGMENT_TITLE = "EXPLORE";
     private Context mCtx;
     private String title;
     private int page;
@@ -36,7 +37,7 @@ public class ExploreFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_saved_places, container, false);
+        View view = inflater.inflate(R.layout.fragment_explore, container, false);
         TextView tvLabel = (TextView) view.findViewById(R.id.text);
         tvLabel.setText(page + " -- " + title);
         return view;

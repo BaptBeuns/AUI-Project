@@ -11,4 +11,6 @@
     <string name="toolbar_text_1">ADD</string>
     <string name="toolbar_text_2">SAVED PLACES</string>
     <string name="toolbar_text_3">EXPLORE</string>
+    <string name="titleview">TitleView</string>
+    <string name="detailtextview">DetailTextView</string>
 </resources>

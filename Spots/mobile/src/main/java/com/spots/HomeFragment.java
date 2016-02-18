@@ -2,13 +2,12 @@ package com.spots;
 
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
@@ -16,10 +15,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,17 +31,13 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
@@ -53,17 +45,17 @@ import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener, PlaceSelectionListener {
+public class HomeFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, LocationListener, PlaceSelectionListener, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
 
     private String TAG = "HOME_FRAGMENT";
+    protected final String FRAGMENT_TITLE = "HOME";
     private Context mCtx;
     private View mView;
     private SupportMapFragment mMapFragment;
@@ -99,10 +91,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         RelativeLayout rl = (RelativeLayout) view.findViewById(R.id.top_layout);
-        View autocomplete = inflater.inflate(R.layout.places_layout, rl, true);
+        View autocomplete = inflater.inflate(R.layout.home_google_places, rl, true);
 
         rl = (RelativeLayout) view.findViewById(R.id.map_layout);
-        View map = inflater.inflate(R.layout.map, rl, true);
+        View map = inflater.inflate(R.layout.home_google_map, rl, true);
 
         View btn = (Button) view.findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
@@ -169,33 +161,21 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
     @Override
     public void onPlaceSelected(Place place) {
         Log.i(TAG, "Place Selected: " + place.getName());
-        /*
-         {
-            @Override
-            public void onPlaceSelected(Place place) {
-                Log.i(TAG, "Place: " + place.getName());
+        // On remplit l'EditView avec le nom du lieu
+        TextView edit = (TextView) mView.findViewById(R.id.edit_spot_name);
+        edit.setText(place.getName());
 
-                // On remplit l'EditView avec le nom du lieu
-                TextView edit = (TextView) mView.findViewById(R.id.edit_spot_name);
-                edit.setText(place.getName());
+        // On recentre la carte
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
-                // On recentre la carte
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
-
-                // On place un marker
-                Log.d("LOCATION MARKER", Double.toString(place.getLatLng().latitude));
-
-                markerLocation.setLatitude(place.getLatLng().latitude);
-                markerLocation.setLongitude(place.getLatLng().longitude);
-                Marker newMarker = mMap.addMarker(new MarkerOptions()
-                        .title((String) place.getName())
-                        .snippet((String) place.getAddress())
-                        .position(place.getLatLng()));
-            }
-
-
-        });
-         */
+        // On place un marker
+        Log.d("LOCATION MARKER", Double.toString(place.getLatLng().latitude));
+        markerLocation.setLatitude(place.getLatLng().latitude);
+        markerLocation.setLongitude(place.getLatLng().longitude);
+        mMap.addMarker(new MarkerOptions()
+                .title((String) place.getName())
+                .snippet((String) place.getAddress())
+                .position(place.getLatLng()));
 
     }
 
@@ -225,8 +205,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
         // On place un marker
         markerLocation.setLatitude(currentLocation.getLatitude());
         markerLocation.setLongitude(currentLocation.getLongitude());
-        Marker newMarker = mMap.addMarker(new MarkerOptions()
+        mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+        mMap.setOnMapClickListener(this);
     }
 
     public void onConnectionFailed(ConnectionResult result) {
@@ -258,12 +239,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         categoryImage = catList.get(0).getLogo();
         resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            drawable = getResources().getDrawable(resID, mCtx.getTheme());
-        } else {
-            drawable = getResources().getDrawable(resID);
-        }
-        drawable = getResources().getDrawable(resID);
         imageView = (ImageView) mView.findViewById(R.id.category_image_1);
         imageView.setImageResource(resID);
         txt = (TextView) getActivity().findViewById(R.id.cat1);
@@ -273,12 +248,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         categoryImage = catList.get(1).getLogo();
         resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            drawable = getResources().getDrawable(resID, mCtx.getTheme());
-        } else {
-            drawable = getResources().getDrawable(resID);
-        }
-        drawable = getResources().getDrawable(resID);
         imageView = (ImageView) mView.findViewById(R.id.category_image_2);
         imageView.setImageResource(resID);
         txt = (TextView) getActivity().findViewById(R.id.cat2);
@@ -288,12 +257,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         categoryImage = catList.get(2).getLogo();
         resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            drawable = getResources().getDrawable(resID, mCtx.getTheme());
-        } else {
-            drawable = getResources().getDrawable(resID);
-        }
-        drawable = getResources().getDrawable(resID);
         imageView = (ImageView) mView.findViewById(R.id.category_image_3);
         imageView.setImageResource(resID);
         txt = (TextView) getActivity().findViewById(R.id.cat3);
@@ -303,12 +266,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
 
         categoryImage = catList.get(3).getLogo();
         resID = getResources().getIdentifier(categoryImage , "drawable", MainActivity.PACKAGE_NAME);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            drawable = getResources().getDrawable(resID, mCtx.getTheme());
-        } else {
-            drawable = getResources().getDrawable(resID);
-        }
-        drawable = getResources().getDrawable(resID);
         imageView = (ImageView) mView.findViewById(R.id.category_image_4);
         imageView.setImageResource(resID);
         txt = (TextView) getActivity().findViewById(R.id.cat4);
@@ -360,11 +317,41 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Google
                 }
             }
         }
-
         SpotDB spotDB = new SpotDB(mCtx);
         spotDB.insert(spot);
         Toast.makeText(mCtx, "Point " + name + " Saved!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        mMap.clear();
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(mCtx, Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            String address = addresses.get(0).getAddressLine(0);
+            TextView edit = (TextView) mView.findViewById(R.id.edit_spot_name);
+            edit.setText(address);
+            // On recentre la carte
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+            // On place un marker
+            Log.d("LOCATION MARKER", Double.toString(latLng.latitude));
+            markerLocation.setLatitude(latLng.latitude);
+            markerLocation.setLongitude(latLng.longitude);
+            mMap.addMarker(new MarkerOptions()
+                    .title(address)
+                    .position(latLng));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(mCtx, "Place not resolved", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        this.onMapClick(latLng);
+    }
 }

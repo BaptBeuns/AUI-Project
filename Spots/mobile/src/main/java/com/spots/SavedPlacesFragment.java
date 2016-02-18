@@ -5,41 +5,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 public class SavedPlacesFragment extends Fragment {
     // Store instance variables
     static final String LOG_TAG = "SavedPlacesFragment";
+    protected final String FRAGMENT_TITLE = "SAVED PLACES";
     private Context mCtx;
     private View mView;
     private String title;
@@ -76,7 +62,7 @@ public class SavedPlacesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_saved_places, container, false);
+        View view = inflater.inflate(R.layout.fragment_saved_places, container, false);
 
         mView = view;
 
@@ -84,7 +70,7 @@ public class SavedPlacesFragment extends Fragment {
 
         // Set eventlisteners on click
         // Doesn't work in fragments for the moment
-        /*
+
         ViewGroup vg = (ViewGroup) mView.findViewById(R.id.savedSpotsList);
         ViewGroup nextChild;
         for(int i=0; i<vg.getChildCount(); ++i) {
@@ -97,7 +83,7 @@ public class SavedPlacesFragment extends Fragment {
                     openBottomSheet(mView);
                 }
             });
-        }*/
+        }
         return view;
     }
 
@@ -124,10 +110,9 @@ public class SavedPlacesFragment extends Fragment {
                 adressesArray[i] = spot.getAddress();
                 imagesArray[i] = getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
 
-                Log.d("category is", Integer.toString(spot.getCategoryId()));
             }
 
-            CustomAdapter adapter = new CustomAdapter(getActivity(), mCtx, titlesArray, adressesArray, imagesArray);
+            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, adressesArray, imagesArray);
             listView = (ListView) mView.findViewById(R.id.savedSpotsList);
             listView.setAdapter(adapter);
         }

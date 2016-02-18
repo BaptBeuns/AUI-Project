@@ -2,8 +2,6 @@ package com.spots;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -11,11 +9,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.spots.data.model.Spot;
-
-public class CustomAdapter extends BaseAdapter {
+public class SpotListAdapter extends BaseAdapter {
 
     public int lastSelectedSpotIndex;
     private Activity activity;
@@ -24,7 +19,8 @@ public class CustomAdapter extends BaseAdapter {
     Context context;
     int [] imageId;
     private static LayoutInflater inflater=null;
-    public CustomAdapter(Activity _activity, Context savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
+
+    public SpotListAdapter(Activity _activity, Context savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
         // TODO Auto-generated constructor stub
         activity = _activity;
         titleResult=prgmTitleList;
@@ -63,7 +59,7 @@ public class CustomAdapter extends BaseAdapter {
         // TODO Auto-generated method stub
         Holder holder=new Holder();
         View rowView;
-        rowView = inflater.inflate(R.layout.activity_listview, null);
+        rowView = inflater.inflate(R.layout.spots_listview, null);
         holder.titleTextView=(TextView) rowView.findViewById(R.id.titleTextView);
         holder.detailTextView=(TextView) rowView.findViewById(R.id.detailTextView);
         holder.img=(ImageView) rowView.findViewById(R.id.imageView1);
