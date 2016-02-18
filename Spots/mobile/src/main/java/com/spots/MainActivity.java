@@ -1,6 +1,8 @@
 package com.spots;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,8 +11,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -189,4 +195,59 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+
+    public void openBottomSheet (View v) {
+        View view = getLayoutInflater().inflate (R.layout.bottom_sheet, null);
+        TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
+        TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
+        TextView txtOpen = (TextView)view.findViewById( R.id.txt_open);
+//        final TextView txtUninstall = (TextView)view.findViewById( R.id.txt_uninstall);
+
+        final Dialog mBottomSheetDialog = new Dialog(this,
+                R.style.MaterialDialogSheet);
+        mBottomSheetDialog.setContentView (view);
+        mBottomSheetDialog.setCancelable (true);
+        mBottomSheetDialog.getWindow ().setLayout(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        mBottomSheetDialog.getWindow ().setGravity(Gravity.BOTTOM);
+        mBottomSheetDialog.show ();
+
+
+        txtBackup.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Clicked Open in Google Maps", Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+                Uri gmmIntentUri = Uri.parse("geo:37.7749,-122.4194");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
+        txtDetail.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"Clicked Open in Citymapper",Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+            }
+        });
+
+        txtOpen.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Clicked Delete Spot", Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+            }
+        });
+
+    }
+
+
 }
