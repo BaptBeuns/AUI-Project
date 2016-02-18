@@ -2,15 +2,12 @@ package com.spots;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewDebug;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -55,7 +52,7 @@ public class SavedPlaces extends Activity {
                 Log.d("category is", Integer.toString(spot.getCategoryId()));
             }
 
-            CustomAdapter adapter = new CustomAdapter(this, this, titlesArray,adressesArray,imagesArray);
+            SpotsAdapter adapter = new SpotsAdapter(this, this, titlesArray,adressesArray,imagesArray);
             final ListView listView = (ListView) findViewById(R.id.savedSpotsList);
             listView.setAdapter(adapter);
             listView.setItemsCanFocus(true);

@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 import com.spots.data.model.Spot;
 
-public class CustomAdapter extends BaseAdapter {
+public class SpotsAdapter extends BaseAdapter {
 
     public int lastSelectedSpotIndex;
     private Activity activity;
@@ -24,7 +24,7 @@ public class CustomAdapter extends BaseAdapter {
     Context context;
     int [] imageId;
     private static LayoutInflater inflater=null;
-    public CustomAdapter(Activity _activity, SavedPlaces savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
+    public SpotsAdapter(Activity _activity, SavedPlaces savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgmImages) {
         // TODO Auto-generated constructor stub
         activity = _activity;
         titleResult=prgmTitleList;

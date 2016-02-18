@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context=".MainActivity" tools:deviceIds="wear_round"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:deviceIds="wear_round"
     android:background="#ffffff">
 
     <TextView android:layout_width="wrap_content"
@@ -31,7 +34,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/dj"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:id="@+id/imageButton6"
         android:layout_alignTop="@+id/imageButton4"
         android:layout_alignStart="@+id/imageButton0"
@@ -42,7 +45,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/bag"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:id="@+id/imageButton0"
         android:layout_alignTop="@+id/imageButton"
         android:layout_alignEnd="@+id/location" />
@@ -52,7 +55,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/sport"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:id="@+id/imageButton"
         android:layout_alignTop="@+id/imageButton2"
         android:layout_centerHorizontal="true" />
@@ -62,7 +65,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/waiter"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:layout_alignTop="@+id/imageButton3"
         android:layout_centerHorizontal="true"
         android:id="@+id/imageButton4" />
@@ -72,7 +75,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/beer"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:id="@+id/imageButton2"
         android:layout_above="@+id/imageButton3"
         android:layout_alignStart="@+id/imageButton3"
@@ -83,11 +86,18 @@
         android:layout_height="wrap_content"
         android:src="@drawable/monument"
         android:background="@drawable/add_button_selector"
-        android:selected="false"
+        android:state_selected="false"
         android:layout_above="@+id/button"
         android:layout_alignStart="@+id/location"
         android:layout_marginBottom="18dp"
         android:id="@+id/imageButton3" />
 </LinearLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:id="@+id/horizontalScrollView"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"/>
 
 </RelativeLayout>
