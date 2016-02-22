@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.spots" >
+    package="com.spots">
 
     <uses-feature android:name="android.hardware.type.watch" />
 
+    <service android:name=".SpotsWearableService">
+        <intent-filter>
+            <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
+        </intent-filter>
+    </service>
+
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.DeviceDefault" >
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault">
+
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

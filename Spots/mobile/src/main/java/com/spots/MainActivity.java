@@ -1,253 +1,336 @@
 package com.spots;
 
-import android.app.Dialog;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
+import com.google.android.gms.wearable.WearableListenerService;
+import com.spots.data.database.CategoryDB;
+import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
 
-// http://developer.android.com/guide/topics/location/strategies.html
-// http://developer.android.com/reference/android/location/LocationManager.html#requestLocationUpdates%28java.lang.String,%20long,%20float,%20android.app.PendingIntent%29
-// http://webdesignergeeks.com/mobile/android/geting-current-location-in-android-application-using-gps/
-// http://www.vogella.com/tutorials/AndroidLocationAPI/article.html#locationapi
+import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener, LocationSource {
 
-    public static String PACKAGE_NAME;
-    private static String TAG = "MAIN_ACTIVITY";
+    private String TAG = "MOBILE_MAIN_ACTIVITY";
+    private static final String START_ACTIVITY = "/main_activity";
+    private static final String WEAR_MESSAGE_PATH = "/message";
+    private String PACKAGE_NAME;
+    private Context mCtx;
+    private LinearLayout categoryLayout;
 
-    private FragmentPagerAdapter adapterViewPager;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
+    private GoogleApiClient mWearableGoogleApiClient;
 
+    private GoogleApiClient mLocationGoogleApiClient;
+    private GoogleMap mMap;
+    private LocationManager locationManager;
+    private OnLocationChangedListener mListener;
+    private Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PACKAGE_NAME = getApplicationContext().getPackageName();
+        mCtx = getApplicationContext();
 
-        ViewPager vpPager = (ViewPager) findViewById(R.id.viewpager);
-        adapterViewPager = new SpotsPagerAdapter(getSupportFragmentManager(), MainActivity.this);
-        vpPager.setAdapter(adapterViewPager);
+        // We fill the list of categories with all our categories
+        fillCategoryList();
 
-        vpPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-
-            // This method will be invoked when a new page becomes selected.
+        Button addSpot = (Button) findViewById(R.id.add_spot_button);
+        addSpot.setOnClickListener( new View.OnClickListener() {
             @Override
-            public void onPageSelected(int position) {
-                String title = (String) adapterViewPager.getPageTitle(position);
-                if (title.equals("SAVED PLACES")) {
-                    Log.d(TAG, "on Update List");
-                    ((SavedPlacesFragment) adapterViewPager.getItem(position)).updateListView();
-                }
-            }
-
-            // This method will be invoked when the current page is scrolled
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                // Code goes here
-            }
-
-            // Called when the scroll state changes:
-            // SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING, SCROLL_STATE_SETTLING
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                // Code goes here
-            }
-        });
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.spots/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
-    }
-    // HOME FRAGMENT
-
-    // Fonction appelée par le clic sur une des catégories
-    public void changeResource(View button) {
-        ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
-        ViewGroup nextChild;
-        View view;
-        // On assigne tous les enfants à pas selected
-        Log.d(TAG, Double.toString(vg.getChildCount()));
-        for (int i = 0; i < vg.getChildCount(); ++i) {
-            nextChild = (ViewGroup) vg.getChildAt(i);
-            if (nextChild.getChildCount() > 0) {
-                view = nextChild.getChildAt(0);
-                view.setBackgroundResource(R.drawable.round_button);
-                view.setSelected(false);
-            }
-        }
-        button.setSelected(true);
-        button.setBackgroundResource(R.drawable.round_button_selected);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.spots/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }
-
-
-    // SAVED PLACES FRAGMENT
-
-    // EXPLORE FRAGMENT
-
-    // NAVIGATION
-
-
-    public static class SpotsPagerAdapter extends FragmentPagerAdapter {
-
-        private static int NUM_ITEMS = 2;
-        private Context context;
-        SavedPlacesFragment savedPlacesFragment;
-        ExploreFragment exploreFragment;
-        HomeFragment homeFragment;
-
-        public SpotsPagerAdapter(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
-            savedPlacesFragment = SavedPlacesFragment.newInstance(context, 1, "Saved Places");
-            exploreFragment = ExploreFragment.newInstance(context, 2, "Explore Fragment");
-            homeFragment = HomeFragment.newInstance(context, 0, "Home");
-        }
-
-        @Override
-        public int getCount() {
-            return NUM_ITEMS;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 2:
-                    return exploreFragment.FRAGMENT_TITLE;
-                case 1:
-                    return savedPlacesFragment.FRAGMENT_TITLE;
-                default:
-                    return homeFragment.FRAGMENT_TITLE;
-            }
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                case 2:
-                    return exploreFragment;
-                case 1:
-                    return savedPlacesFragment;
-                default:
-                    return homeFragment;
-            }
-        }
-
-    }
-
-
-    public void openBottomSheet (View v) {
-        View view = getLayoutInflater().inflate (R.layout.bottom_sheet, null);
-        TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
-        TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
-        TextView txtOpen = (TextView)view.findViewById( R.id.txt_open);
-//        final TextView txtUninstall = (TextView)view.findViewById( R.id.txt_uninstall);
-
-        final Dialog mBottomSheetDialog = new Dialog(this,
-                R.style.MaterialDialogSheet);
-        mBottomSheetDialog.setContentView (view);
-        mBottomSheetDialog.setCancelable (true);
-        mBottomSheetDialog.getWindow ().setLayout(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        mBottomSheetDialog.getWindow ().setGravity(Gravity.BOTTOM);
-        mBottomSheetDialog.show ();
-
-
-        txtBackup.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Clicked Open in Google Maps", Toast.LENGTH_SHORT).show();
-                mBottomSheetDialog.dismiss();
-                Uri gmmIntentUri = Uri.parse("geo:37.7749,-122.4194");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(mapIntent);
+            public void onClick( View view ) {
+                EditText tv = (EditText) findViewById(R.id.edit_spot_name);
+                String text = tv.getText().toString();
+                if ( !TextUtils.isEmpty( text ) ) {
+                    sendMessage( WEAR_MESSAGE_PATH, text );
                 }
             }
         });
 
-        txtDetail.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),"Clicked Open in Citymapper",Toast.LENGTH_SHORT).show();
-                mBottomSheetDialog.dismiss();
+        // We ask for the update of the location
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (locationManager != null) {
+            boolean gpsIsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            boolean networkIsEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
             }
-        });
 
-        txtOpen.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Clicked Delete Spot", Toast.LENGTH_SHORT).show();
-                mBottomSheetDialog.dismiss();
+            if (gpsIsEnabled) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 10F, this);
+            } else if (networkIsEnabled) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 10F, this);
+            } else {
+                //Show an error dialog that GPS is disabled...
             }
-        });
+        } else {
+            //Show some generic error dialog because something must have gone wrong with location manager.
+        }
+        setUpMapIfNeeded();
+        initGoogleApiClient();
+        // Handles the Google Places part
+        handleGooglePlaces();
+    }
 
+    private void initGoogleApiClient() {
+        mWearableGoogleApiClient = new GoogleApiClient.Builder( this )
+                .addApi( Wearable.API )
+                .build();
+        mWearableGoogleApiClient.connect();
+
+
+        // We create a Google API client for the requests
+        mLocationGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this, this)
+                .build();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        sendMessage(START_ACTIVITY, "");
+    }
+
+    private void sendMessage( final String path, final String text ) {
+        new Thread( new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mWearableGoogleApiClient).await();
+                for(Node node : nodes.getNodes()) {
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                            mWearableGoogleApiClient, node.getId(), path, text.getBytes() ).await();
+                }
+
+                runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        EditText tv = (EditText) findViewById(R.id.edit_spot_name);
+                        tv.setText("Message Sent");
+                    }
+                });
+            }
+        }).start();
+    }
+
+    @Override
+    public void onPause() {
+        if (locationManager != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            locationManager.removeUpdates(this);
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setUpMapIfNeeded();
+        if (locationManager != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            //mMap.setMyLocationEnabled(true);
+        }
     }
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //googleMap.setMyLocationEnabled(true);
+            return;
+        }
+        mMap = googleMap;
+    }
+
+    @Override
+    public void onLocationChanged(Location location)
+    {
+        currentLocation = location;
+        if( mListener != null )
+        {
+            mListener.onLocationChanged( location );
+
+            LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
+
+            if(!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude())))
+            {
+                //Move the camera to the user's location once it's available!
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
+            }
+        }
+    }
+
+    @Override
+    public void onProviderDisabled(String provider)
+    {
+        // TODO Auto-generated method stub
+        Toast.makeText(this, "provider disabled", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderEnabled(String provider)
+    {
+        // TODO Auto-generated method stub
+        Toast.makeText(this, "provider enabled", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras)
+    {
+        // TODO Auto-generated method stub
+        Toast.makeText(this, "status changed", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setUpMapIfNeeded() {
+        // Do a null check to confirm that we have not already instantiated the map.
+        if (mMap == null) {
+            // Try to obtain the map from the SupportMapFragment.
+            MapFragment mapFragment = (MapFragment) getFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+            // Check if we were successful in obtaining the map.
+
+            if (mMap != null) {
+                setUpMap();
+            }
+        }
+    }
+
+    private void setUpMap() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
+    }
+
+    @Override
+    public void activate(LocationSource.OnLocationChangedListener listener)
+    {
+        mListener = listener;
+    }
+
+    @Override
+    public void deactivate()
+    {
+        mListener = null;
+    }
+
+    private void fillCategoryList() {
+        Category category;
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDB.getAll();
+        String[] namesArray = new String[categoryList.size()];
+        int[] imagesArray = new int[categoryList.size()];
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            category = categoryList.get(i);
+            namesArray[i] = category.getName();
+            imagesArray[i] = getResources().getIdentifier(category.getLogo(), "drawable", PACKAGE_NAME);
+        }
+
+        CategoryListAdapter adapter = new CategoryListAdapter(this, mCtx, imagesArray, namesArray);
+        categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            View item = adapter.getView(i, null, null);
+            categoryLayout.addView(item);
+        }
+    }
+
+    private void handleGooglePlaces () {
+
+        // eventListener for the Place selector
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // We fill the description with the name of the place
+                TextView edit = (TextView) findViewById(R.id.edit_spot_name);
+                edit.setText(place.getName());
+
+                // We center the map on the selected place
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
+
+                // We put a marker on it
+                Marker newMarker = mMap.addMarker(new MarkerOptions()
+                        .title((String)place.getName())
+                        .snippet((String)place.getAddress())
+                        .position(place.getLatLng()));
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("GOOGLE PLACES", "An error occurred: " + status);
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }
