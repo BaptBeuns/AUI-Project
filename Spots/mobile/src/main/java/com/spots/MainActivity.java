@@ -65,10 +65,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout categoryLayout;
 
     private GoogleApiClient mWearableGoogleApiClient;
-
+    private GoogleApiClient mGooglePlaceApiClient;
     private GoogleApiClient mLocationGoogleApiClient;
+
     private GoogleMap mMap;
     private LocationManager locationManager;
+    private LocationRequest mLocationRequest;
     private OnLocationChangedListener mListener;
     private Location currentLocation;
 
@@ -126,18 +128,82 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mWearableGoogleApiClient.connect();
 
 
-        // We create a Google API client for the requests
-        mLocationGoogleApiClient = new GoogleApiClient
+        // We create a Google Places API client for the requests
+        mGooglePlaceApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .enableAutoManage(this, this)
                 .build();
+
+        // Idem for getting the location
+        if (mLocationGoogleApiClient == null) {
+        mLocationGoogleApiClient = new GoogleApiClient.Builder(this)
+            .addConnectionCallbacks(this)
+            .addOnConnectionFailedListener(this)
+            .addApi(LocationServices.API)
+            .build();
+        }
     }
 
     @Override
     public void onConnected(Bundle bundle) {
         sendMessage(START_ACTIVITY, "");
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mLocationGoogleApiClient);
+
+        // http://developer.android.com/training/location/change-location-settings.html
+        // We create a location request
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        // And add it to the location settings requests
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+            .addLocationRequest(mLocationRequest);
+
+        // result tells us if the good location options are enabled on the user's device
+        PendingResult<LocationSettingsResult> result =
+                 LocationServices.SettingsApi.checkLocationSettings(mGoogleClient,
+                         builder.build());
+
+        // If they are not enabled, we prompt the user to modify them
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can
+                        // initialize location requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied, but this can be fixed
+                        // by showing the user a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(
+                                OuterClass.this,
+                                REQUEST_CHECK_SETTINGS);
+                        } catch (SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way
+                        // to fix the settings so we won't show the dialog.
+                        Toast.makeText(this, "Your device doesn't have the right permissions",
+                            Toast.LENGTH_LONG).show();
+                        break;
+                }
+            }
+        });
+
+        // Start getting the location updates
+        startLocationUpdates();
     }
 
     private void sendMessage( final String path, final String text ) {
@@ -191,6 +257,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    protected void onCreate() {
+        mLocationGoogleApiClient.connect();
+        super.onCreate();
+    }
+
+    @Override
+    protected void onStop() {
+        mLocationGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             //googleMap.setMyLocationEnabled(true);
@@ -206,9 +284,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if( mListener != null )
         {
             mListener.onLocationChanged( location );
-
             LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
-
             if(!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude())))
             {
                 //Move the camera to the user's location once it's available!
@@ -258,6 +334,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         mMap.setMyLocationEnabled(true);
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mLocationGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
