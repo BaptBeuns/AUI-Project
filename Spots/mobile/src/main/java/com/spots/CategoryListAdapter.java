@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,6 +70,12 @@ public class CategoryListAdapter extends BaseAdapter {
                 Toast.makeText(context, "You Clicked "+categoryNames[position], Toast.LENGTH_LONG).show();
             }
         });
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(15, 0, 15, 0);
+        rowView.setLayoutParams(params);
         return rowView;
     }
 

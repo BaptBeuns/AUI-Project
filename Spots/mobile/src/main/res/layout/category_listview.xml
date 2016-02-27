@@ -12,11 +12,10 @@
     <ImageButton
         android:id="@+id/categoryImage"
         android:orientation="vertical"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="center_horizontal"
         android:layout_height="50dp"
         android:layout_width="50dp"
         android:layout_marginTop="5dp"
-        android:layout_marginRight="15dp"
         android:scaleType="fitCenter"
         android:padding="4dp"
         android:background="@drawable/round_button"
@@ -28,9 +27,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="5dp"
-        android:layout_marginRight="15dp"
         android:textSize="15sp"
         android:textColor="@color/black"
         android:text="T"
-        />
+        android:gravity="center_horizontal" />
 </LinearLayout>

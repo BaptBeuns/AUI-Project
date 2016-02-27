@@ -1,0 +1,38 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <ListView
+        android:descendantFocusability="blocksDescendants"
+        android:id="@+id/savedSpotsList"
+        android:background="@drawable/layout_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="#E0E0E0"
+        android:dividerHeight="1dp">
+    </ListView>
+
+    <LinearLayout
+        android:id="@+id/noSpotLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/light_grey">
+        <ImageView
+            android:layout_marginTop="20dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/trophy"
+            android:layout_gravity="center_horizontal" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Go Discover spots to fill this category!"/>
+    </LinearLayout>
+
+
+</FrameLayout>

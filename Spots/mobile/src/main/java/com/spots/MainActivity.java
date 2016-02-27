@@ -12,6 +12,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,12 +64,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private String TAG = "MOBILE_MAIN_ACTIVITY";
     private static final String START_ACTIVITY = "/main_activity";
     private static final String WEAR_MESSAGE_PATH = "/message";
-    private String PACKAGE_NAME;
+    protected static String PACKAGE_NAME;
     private Context mCtx;
     private LinearLayout categoryLayout;
+    protected static int TopBarHeight;
 
     private GoogleApiClient mWearableGoogleApiClient;
-
     private GoogleApiClient mLocationGoogleApiClient;
     private GoogleMap mMap;
     private LocationManager locationManager;
@@ -117,6 +121,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         initGoogleApiClient();
         // Handles the Google Places part
         handleGooglePlaces();
+    }
+
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        RelativeLayout rl = (RelativeLayout) findViewById(R.id.top_layout);
+        TopBarHeight = rl.getLayoutParams().height;
+        Log.d(TAG,Integer.toString(TopBarHeight));
     }
 
     private void initGoogleApiClient() {
@@ -292,16 +306,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             View item = adapter.getView(i, null, null);
             categoryLayout.addView(item);
         }
+        categoryDB.close();
     }
 
     private void handleGooglePlaces () {
-
+        Log.d(TAG,"Handle Google Places");
         // eventListener for the Place selector
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
+                Log.d(TAG,"On Place Selected");
                 // We fill the description with the name of the place
                 TextView edit = (TextView) findViewById(R.id.edit_spot_name);
                 edit.setText(place.getName());

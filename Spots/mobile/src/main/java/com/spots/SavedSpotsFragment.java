@@ -4,104 +4,165 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.spots.data.database.CategoryDB;
+import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
+import com.spots.data.model.Spot;
+import com.spots.slider.SlidingTabLayout;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SavedSpotsFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SavedSpotsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.List;
+
+
 public class SavedSpotsFragment extends Fragment {
 
-    private static final String CATEGORY_ID = "categoryId";
-
-    private int categoryId;
-
-    //private OnFragmentInteractionListener mListener;
-
-    public SavedSpotsFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param categoryId Parameter 1.
-     * @return A new instance of fragment SavedSpotsFragment.
-     */
-    public static SavedSpotsFragment newInstance(int categoryId) {
-        SavedSpotsFragment fragment = new SavedSpotsFragment();
-        Bundle args = new Bundle();
-        args.putInt(CATEGORY_ID, categoryId);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            categoryId = getArguments().getInt(CATEGORY_ID);
-        }
-    }
+    static final String TAG = "SAVED SPOTS FRAGMENTS";
+    private SlidingTabLayout mSlidingTabLayout;
+    private ViewPager mViewPager;
+    private Context mCtx;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_saved_spots, container, false);
-        TextView tv = (TextView) view.findViewById(R.id.text_view);
-        CharSequence text = "Fragment number "+Integer.toString(categoryId);
-        tv.setText(text);
-        return view;
+        return inflater.inflate(R.layout.saved_spots_fragment, container, false);
     }
 
-/*
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        //LinearLayout lr = (LinearLayout) view.findViewById(R.id.top_layout_saved);
+        //lr.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,MainActivity.TopBarHeight));
+
+        mViewPager = (ViewPager) view.findViewById(R.id.viewpager);
+        mViewPager.setAdapter(new SamplePagerAdapter());
+
+        mSlidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
+        mSlidingTabLayout.setViewPager(mViewPager);
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+        mCtx = context;
+    }
+
+    public void updateListView() {
+        
+        CategoryDB categoryDatabase = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDatabase.getAll();
+
+
+    }
+
+    class SamplePagerAdapter extends PagerAdapter {
+
+        List<Category> categoryList;
+        List<Spot> spotList;
+        
+        public SamplePagerAdapter() {
+            CategoryDB catDB = new CategoryDB(mCtx);
+            categoryList = catDB.getAll();
+            SpotDB spotDB = new SpotDB(mCtx);
+            spotList = spotDB.getAll();
+
+
         }
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-*/
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+        @Override
+        public int getCount() {
+            return categoryList.size() + 1;
+        }
 
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        @Override
+        public boolean isViewFromObject(View view, Object o) {
+            return o == view;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            if (position == 0) {
+                return "ALL";
+            }
+            return categoryList.get(position - 1).getName();
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            int numberOfSpots = 0;
+            int fillArrays = 0;
+            int spotInList = 0;
+            ListView listView;
+            LinearLayout noSpot;
+            // Inflate a new layout from our resources
+            View view = getActivity().getLayoutInflater().inflate(R.layout.saved_spots_pager,
+                    container, false);
+            // Add the newly created View to the ViewPager
+            container.addView(view);
+
+            // COUNT NUMBER OF CORRESPONDING SPOTS
+            if(position == 0) { // "ALL" CATEGORY
+                numberOfSpots = spotList.size();
+            } else {            // OTHERS CATEGORIES
+                for (Spot spot: spotList) {
+                    if (spot.getCategoryId() == position - 1) {
+                        numberOfSpots++;
+                    }
+                }
+            }
+
+            String[] titlesArray    = new String[numberOfSpots];
+            String[] addressesArray = new String[numberOfSpots];
+            int[] imagesArray       = new int[numberOfSpots];
+
+            while((fillArrays < numberOfSpots)&&(spotInList < spotList.size())) {
+                Spot spot = spotList.get(spotInList);
+                int categoryId = spot.getCategoryId();
+
+                if ((categoryId == position - 1)||(position == 0)) {
+                    titlesArray[fillArrays] = spot.getName();
+                    addressesArray[fillArrays] = spot.getAddress();
+                    if (!((categoryId<=categoryList.size())&&(categoryId>=0))) {
+                        categoryId = 0;
+                    }
+                    Category category = categoryList.get(categoryId);
+                    imagesArray[fillArrays] = getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
+                    fillArrays++;
+                }
+                spotInList++;
+            }
+
+            listView = (ListView) view.findViewById(R.id.savedSpotsList);
+            noSpot = (LinearLayout) view.findViewById(R.id.noSpotLayout);
+            if(numberOfSpots == 0) {
+                listView.setVisibility(View.INVISIBLE);
+                noSpot.setVisibility(View.VISIBLE);
+            } else {
+                listView.setVisibility(View.VISIBLE);
+                noSpot.setVisibility(View.INVISIBLE);
+            }
+
+            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, addressesArray, imagesArray);
+
+            listView.setAdapter(adapter);
+
+            return view;
+        }
+
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            container.removeView((View) object);
+            Log.i(TAG, "destroyItem() [position: " + position + "]");
+        }
+
     }
 }

@@ -1,13 +1,27 @@
 package com.spots;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.spots.data.database.CategoryDB;
+import com.spots.data.model.Category;
+
+import java.util.List;
 
 public class SavedSpotsActivity extends AppCompatActivity {
 
@@ -19,58 +33,64 @@ public class SavedSpotsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_spots);
 
-        ViewPager vpPager = (ViewPager) findViewById(R.id.viewpager);
-        adapterViewPager = new SpotsPagerAdapter(getSupportFragmentManager(), this);
-        vpPager.setAdapter(adapterViewPager);
+        if (savedInstanceState == null) {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            SavedSpotsFragment fragment = new SavedSpotsFragment();
+            transaction.replace(R.id.sample_content_fragment, fragment);
+            transaction.commit();
+        }
+    }
 
-        vpPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+    public void openBottomSheet (View v) {
+        View view = getLayoutInflater().inflate (R.layout.bottom_sheet, null);
+        TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
+        TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
+        TextView txtOpen = (TextView)view.findViewById( R.id.txt_open);
+//        final TextView txtUninstall = (TextView)view.findViewById( R.id.txt_uninstall);
 
-            // This method will be invoked when a new page becomes selected.
+        final Dialog mBottomSheetDialog = new Dialog(this,
+                R.style.MaterialDialogSheet);
+        mBottomSheetDialog.setContentView (view);
+        mBottomSheetDialog.setCancelable (true);
+        mBottomSheetDialog.getWindow ().setLayout(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        mBottomSheetDialog.getWindow ().setGravity(Gravity.BOTTOM);
+        mBottomSheetDialog.show ();
+
+
+        txtBackup.setOnClickListener(new View.OnClickListener() {
+
             @Override
-            public void onPageSelected(int position) {
-            }
-
-            // This method will be invoked when the current page is scrolled
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                // Code goes here
-            }
-
-            // Called when the scroll state changes:
-            // SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING, SCROLL_STATE_SETTLING
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                // Code goes here
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Clicked Open in Google Maps", Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+                Uri gmmIntentUri = Uri.parse("geo:37.7749,-122.4194");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                }
             }
         });
-    }
 
+        txtDetail.setOnClickListener(new View.OnClickListener() {
 
-    public static class SpotsPagerAdapter extends FragmentPagerAdapter {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"Clicked Open in Citymapper",Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+            }
+        });
 
-        private static int NUM_ITEMS = 2;
-        private Context context;
-        SavedSpotsFragment SavedSpotsFragment;
+        txtOpen.setOnClickListener(new View.OnClickListener() {
 
-        public SpotsPagerAdapter(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
-        }
-
-        @Override
-        public int getCount() {
-            return NUM_ITEMS;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return "Page number :"+position;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return SavedSpotsFragment.newInstance(position);
-        }
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Clicked Delete Spot", Toast.LENGTH_SHORT).show();
+                mBottomSheetDialog.dismiss();
+            }
+        });
 
     }
+
 }
