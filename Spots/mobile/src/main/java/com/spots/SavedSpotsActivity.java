@@ -46,7 +46,6 @@ public class SavedSpotsActivity extends AppCompatActivity {
         TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
         TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
         TextView txtOpen = (TextView)view.findViewById( R.id.txt_open);
-//        final TextView txtUninstall = (TextView)view.findViewById( R.id.txt_uninstall);
 
         final Dialog mBottomSheetDialog = new Dialog(this,
                 R.style.MaterialDialogSheet);

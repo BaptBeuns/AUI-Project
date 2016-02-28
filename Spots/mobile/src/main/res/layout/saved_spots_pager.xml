@@ -22,16 +22,17 @@
         android:orientation="vertical"
         android:background="@color/light_grey">
         <ImageView
-            android:layout_marginTop="20dp"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_marginTop="100dp"
+            android:layout_marginBottom="100dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:src="@drawable/trophy"
             android:layout_gravity="center_horizontal" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Go Discover spots to fill this category!"/>
+            android:text="Go discover spots \n to fill this category!"/>
     </LinearLayout>
 
 

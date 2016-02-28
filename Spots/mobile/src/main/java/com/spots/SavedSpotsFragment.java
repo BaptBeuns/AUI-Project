@@ -39,8 +39,6 @@ public class SavedSpotsFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        //LinearLayout lr = (LinearLayout) view.findViewById(R.id.top_layout_saved);
-        //lr.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,MainActivity.TopBarHeight));
 
         mViewPager = (ViewPager) view.findViewById(R.id.viewpager);
         mViewPager.setAdapter(new SamplePagerAdapter());
@@ -56,15 +54,11 @@ public class SavedSpotsFragment extends Fragment {
     }
 
     public void updateListView() {
-        
         CategoryDB categoryDatabase = new CategoryDB(mCtx);
         List<Category> categoryList = categoryDatabase.getAll();
-
-
     }
 
     class SamplePagerAdapter extends PagerAdapter {
-
         List<Category> categoryList;
         List<Spot> spotList;
         
@@ -73,8 +67,6 @@ public class SavedSpotsFragment extends Fragment {
             categoryList = catDB.getAll();
             SpotDB spotDB = new SpotDB(mCtx);
             spotList = spotDB.getAll();
-
-
         }
 
         @Override
