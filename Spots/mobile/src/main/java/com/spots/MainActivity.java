@@ -68,6 +68,24 @@ import org.w3c.dom.Text;
 
 import java.net.URLEncoder;
 
+/*
+
+FILE ORGANISATION
+
+1. VARIABLES
+2. ACTIVITY LIFECYCLE
+3. RETRIEVE SETTINGS
+4. BUILD CONNECT AND DISCONNECT GOOGLE API CLIENTS
+5. LOCATION REQUEST
+6. LOCATION MANAGEMENT
+7. MAP
+8. GEOCODER
+9. GOOGLE PLACES
+10. PLACE PICKER
+11. STORE SETTINGS
+12. WEAR
+
+*/
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback,
         ConnectionCallbacks, OnConnectionFailedListener,
