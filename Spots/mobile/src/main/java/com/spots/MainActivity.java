@@ -3,8 +3,10 @@ package com.spots;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -15,9 +17,13 @@ import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -54,12 +60,16 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
+import com.spots.data.model.Spot;
 
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.w3c.dom.Text;
 
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /*
 
@@ -111,6 +121,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mCurrentLocation;
     private AddressResultReceiver mAddressResultReceiver;
     private GoogleMap mMap;
+    private Marker markerLocation;
 
 
     // KEYS FOR STORING ACTIVITY STATE IN THE BUNDLE
@@ -152,6 +163,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
         CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
+
+        initWear();
 /*
         Button addSpot = (Button) findViewById(R.id.add_spot_button);
         addSpot.setOnClickListener(new View.OnClickListener() {
@@ -166,6 +179,62 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         });*/
     }
 
+    public void addSpotClicked() {
+        double latitude = 0, longitude = 0;
+        String name;
+        // On chope le nom du lieu dans la description
+        TextView txt = (TextView) findViewById(R.id.edit_spot_name);
+        name = txt.getText().toString();
+
+
+        if (markerLocation != null) {
+            Log.d("LOCATION", "Localisation issue de Google");
+            longitude = markerLocation.getPosition().longitude;
+            latitude = markerLocation.getPosition().latitude;
+        } else if (mCurrentLocation != null) {
+            Log.d("LOCATION", "Localisation issue du GPS");
+            longitude = mCurrentLocation.getLongitude();
+            latitude = mCurrentLocation.getLatitude();
+        }
+        Location location = new Location("no use");
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
+        addSpot(location,name);
+    }
+
+    // Fonction appelée par le clic sur le bouton ADD SPOT
+    public void addSpot(Location location, String name) {
+        Spot spot = new Spot();
+
+        if (name.matches("")) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String textDate = dateFormat.format(date).toString();
+            name = "Spot added on " + textDate;
+        }
+        spot.setName(name);
+
+        spot.setLatitude(location.getLatitude());
+        spot.setLongitude(location.getLongitude());
+        spot.setAddress("");
+        spot.setCategoryId(1);
+        // Get category
+        /*
+        ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
+        ViewGroup nextChild;
+        View view;
+        // On assigne tous les enfants à pas selected
+        for (int i = 0; i < vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            if (nextChild.getChildCount() > 0) {
+                view = nextChild.getChildAt(0);
+                if (view.isSelected()) {
+                    spot.setCategoryId(i);
+                    break;
+                }
+            }
+        }*/
+    }
 
     @Override
     protected void onStart() {
@@ -548,11 +617,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
                 // We put a marker on it
-                final Marker marker = mMap.addMarker(new MarkerOptions()
+                markerLocation = mMap.addMarker(new MarkerOptions()
                         .title((String) place.getName())
                         .snippet((String) place.getAddress())
                         .position(place.getLatLng()));
-                Log.d(TAG, "New Marker : " + marker.getTitle());
+                Log.d(TAG, "New Marker : " + markerLocation.getTitle());
             }
 
             @Override
@@ -587,7 +656,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     ***************************************************************************************************
                                         WEAR
     ***************************************************************************************************
+    */
 
+    private void initWear() {
+        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
+        MessageReceiver messageReceiver = new MessageReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
+    }
+
+    public class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            // Display message in UI
+            Toast.makeText(context, "Wear Sent : "+message, Toast.LENGTH_LONG).show();
+            String delims = "[:]";
+            String[] params = message.split(delims);
+            double latitude=Double.parseDouble(params[1]);
+            double longitude=Double.parseDouble(params[3]);
+            Location location = new Location("no use");
+            addSpot(location,"Wear");
+        }
+    }
+    /*
 
     private void sendMessage(final String path, final String text) {
 

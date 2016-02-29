@@ -24,6 +24,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
 
@@ -44,10 +47,12 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     // LOCATION VARIABLES
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
-
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    // HANDLED COMMUNICATION
+    private static final String ADD_SPOT_PATH = "/add_spot";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,10 +159,37 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     ***************************************************************************************************
      */
 
-    private void addSpot(View view) {
+    public void addSpot(View view) {
         if(mCurrentLocation != null) {
-            Toast.makeText(mCtx, "Add Spot (Lat:"+mCurrentLocation.getLatitude()+"/Long"+mCurrentLocation.getLongitude(), Toast.LENGTH_LONG).show();
+            String message = "Add Spot Lat:"+mCurrentLocation.getLatitude()+":Long:"+mCurrentLocation.getLongitude();
+            new SenderThread(ADD_SPOT_PATH,message).start();
         }
     }
 
+
+    public class SenderThread extends Thread {
+
+        String path;
+        String message;
+
+        // Constructor to send a message to the data layer
+        public SenderThread(String p, String msg) {
+            path = p;
+            message = msg;
+        }
+
+        public void run() {
+            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+            for (Node node : nodes.getNodes()) {
+                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), path, message.getBytes()).await();
+                if (result.getStatus().isSuccess()) {
+                    Log.v(TAG, "Message: {" + message + "} sent to: " + node.getDisplayName());
+                }
+                else {
+                    // Log an error
+                    Log.v(TAG, "ERROR: failed to send Message");
+                }
+            }
+        }
+    }
 }
