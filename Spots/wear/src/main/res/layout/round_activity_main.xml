@@ -35,14 +35,15 @@
             </LinearLayout>
         </HorizontalScrollView>
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/main_color"
+            android:text="ADD SPOT"
+            android:id="@+id/add_spot_button"
+            android:onClick="addSpot"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/main_color"
-        android:text="ADD SPOT"
-        android:id="@+id/add_spot_button"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
 </RelativeLayout>

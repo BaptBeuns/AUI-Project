@@ -404,10 +404,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             buildLocationSettingsRequest();
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mLocationGoogleApiClient,
-                mLocationRequest, this
-        ).setResultCallback(new ResultCallback<Status>() {
+        LocationServices.FusedLocationApi
+                .requestLocationUpdates(mLocationGoogleApiClient, mLocationRequest, this)
+                .setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
                 mRequestingLocationUpdates = true;

@@ -1,22 +1,25 @@
 package com.spots;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.DataApi;
@@ -27,14 +30,20 @@ import com.spots.data.database.CategoryDB;
 
 public class MainActivity extends Activity implements DataApi.DataListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        LocationListener{
-
+        LocationListener {
+    // GLOBAL VARIABLES
     private String TAG = "WEAR_MAIN_ACTIVITY";
     public static String PACKAGE_NAME;
+    private Context mCtx;
+
+    // LAYOUT VARIABLES
     private TextView mTextView;
     public LinearLayout categoryLayout;
-    private Context mCtx;
+    private Button addSpotButton;
+
+    // LOCATION VARIABLES
     private GoogleApiClient mGoogleApiClient;
+    private Location mCurrentLocation;
 
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
@@ -52,10 +61,13 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             public void onLayoutInflated(WatchViewStub stub) {
                 mTextView = (TextView) stub.findViewById(R.id.text);
                 categoryLayout = (LinearLayout) stub.findViewById(R.id.categoryLayout);
+                addSpotButton = (Button) stub.findViewById(R.id.add_spot_button);
+                addSpotButton.setEnabled(false);
                 mCtx = getApplicationContext();
                 // We fill the list of categories with all our categories
                 CategoryDB catDB = new CategoryDB(mCtx);
-                catDB.fillCategoryList(mainActivity, mCtx,categoryLayout);
+                catDB.fillCategoryList(mainActivity, mCtx, categoryLayout);
+                catDB.close();
             }
         });
 
@@ -77,33 +89,21 @@ public class MainActivity extends Activity implements DataApi.DataListener,
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG,"on connected");
+        Log.d(TAG, "on connected");
         Wearable.DataApi.addListener(mGoogleApiClient, this);
-        LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(UPDATE_INTERVAL_IN_MILLISECONDS)
-                .setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        // Create the LocationRequest object
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        locationRequest.setSmallestDisplacement(2);
 
-        LocationServices.FusedLocationApi
-                .requestLocationUpdates(mGoogleApiClient, locationRequest, this)
-                .setResultCallback(new ResultCallback() {
-
-                    @Override
-                    public void onResult(Status status) {
-                        if (status.getStatus().isSuccess()) {
-                            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                                Log.d(TAG, "Successfully requested location updates");
-                            }
-                        } else {
-                            Log.e(TAG,
-                                    "Failed in requesting location updates, "
-                                            + "status code: "
-                                            + status.getStatusCode()
-                                            + ", message: "
-                                            + status.getStatusMessage());
-                        }
-                    }
-                });
+        // Register listener using the LocationRequest object
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(mCtx, "Geolocation Disabled on device", Toast.LENGTH_LONG).show();
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 
     }
 
@@ -112,7 +112,10 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         Log.d(TAG,"on pause");
         super.onPause();
         Wearable.DataApi.removeListener(mGoogleApiClient, this);
-        mGoogleApiClient.disconnect();
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }
     }
 
     @Override
@@ -139,21 +142,22 @@ public class MainActivity extends Activity implements DataApi.DataListener,
 
     @Override
     public void onLocationChanged(Location location) {
-
+        mTextView.setText("Location Detected!");
+        addSpotButton.setEnabled(true);
+        mCurrentLocation = location;
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
 
+    /*
+    ***************************************************************************************************
+                                            ADD SPOT
+    ***************************************************************************************************
+     */
+
+    private void addSpot(View view) {
+        if(mCurrentLocation != null) {
+            Toast.makeText(mCtx, "Add Spot (Lat:"+mCurrentLocation.getLatitude()+"/Long"+mCurrentLocation.getLongitude(), Toast.LENGTH_LONG).show();
+        }
     }
 
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 }
