@@ -1,9 +1,14 @@
 package com.spots.data.database;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.view.View;
+import android.widget.LinearLayout;
 
+import com.spots.CategoryListAdapter;
+import com.spots.MainActivity;
 import com.spots.data.model.Category;
 
 import java.util.ArrayList;
@@ -104,6 +109,28 @@ public class CategoryDB extends BaseDB {
         c.close();
 
         return category;
+    }
+
+    public void fillCategoryList(Activity activity, Context context, LinearLayout categoryLayout) {
+
+        Category category;
+        CategoryDB categoryDB = new CategoryDB(context);
+        List<Category> categoryList = categoryDB.getAll();
+        String[] namesArray = new String[categoryList.size()];
+        int[] imagesArray = new int[categoryList.size()];
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            category = categoryList.get(i);
+            namesArray[i] = category.getName();
+            imagesArray[i] = context.getResources().getIdentifier(category.getLogo(),"drawable", MainActivity.PACKAGE_NAME);
+        }
+
+        CategoryListAdapter adapter = new CategoryListAdapter(activity, context, imagesArray, namesArray);
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            View item = adapter.getView(i, null, null);
+            categoryLayout.addView(item);
+        }
     }
 
 }

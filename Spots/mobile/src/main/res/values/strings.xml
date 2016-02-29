@@ -16,9 +16,6 @@
     <string name="titleview">TitleView</string>
     <string name="detailtextview">DetailTextView</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_location_resolution">LocationResolution</string>
     <string name="service_not_available">Network or I/O issues</string>
     <string name="invalid_lat_long_used">Invalid latitude / longitude passed</string>
     <string name="no_address_found">No address found for given location</string>
