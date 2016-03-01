@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.spots.data.database.CategoryDB;
 import com.spots.data.model.Category;
+import com.spots.data.model.Spot;
 
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class SavedSpotsActivity extends AppCompatActivity {
         }
     }
 
-    public void openBottomSheet (View v) {
+    public void openBottomSheet(View v, final String elementTitle, final double elementLatitude, final double elementLongitude) {
         View view = getLayoutInflater().inflate (R.layout.bottom_sheet, null);
         TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
         TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
@@ -49,25 +50,26 @@ public class SavedSpotsActivity extends AppCompatActivity {
 
         final Dialog mBottomSheetDialog = new Dialog(this,
                 R.style.MaterialDialogSheet);
-        mBottomSheetDialog.setContentView (view);
-        mBottomSheetDialog.setCancelable (true);
+        mBottomSheetDialog.setContentView(view);
+        mBottomSheetDialog.setCancelable(true);
         mBottomSheetDialog.getWindow ().setLayout(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         mBottomSheetDialog.getWindow ().setGravity(Gravity.BOTTOM);
-        mBottomSheetDialog.show ();
+        mBottomSheetDialog.show();
 
 
         txtBackup.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Clicked Open in Google Maps", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Clicked Open in Google Maps", Toast.LENGTH_SHORT).show();
                 mBottomSheetDialog.dismiss();
-                Uri gmmIntentUri = Uri.parse("geo:37.7749,-122.4194");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(mapIntent);
+                String stringLongitude = Double.toString(elementLongitude);
+                String stringLatitude = Double.toString(elementLatitude);
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:"+stringLatitude+","+stringLongitude+"?q="+stringLatitude+","+stringLongitude+"("+elementTitle+")"));
+                intent.setPackage("com.google.android.apps.maps");
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
                 }
             }
         });
@@ -76,8 +78,16 @@ public class SavedSpotsActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),"Clicked Open in Citymapper",Toast.LENGTH_SHORT).show();
-                mBottomSheetDialog.dismiss();
+//                Toast.makeText(getApplicationContext(), "Clicked Open in Citymapper", Toast.LENGTH_SHORT).show();
+                String locationString="https://citymapper.com/directions?endcoord="+Double.toString(elementLatitude)+"%2C"+Double.toString(elementLongitude)+"&endname="+elementTitle;
+                Log.d("Location :", locationString);
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(locationString));
+                startActivity(intent);
+
+//                intent.setPackage("com.citymapper.app.release");
+//                if (intent.resolveActivity(getPackageManager()) != null) {
+//                    mBottomSheetDialog.dismiss();
+//                }
             }
         });
 

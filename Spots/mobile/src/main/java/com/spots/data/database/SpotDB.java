@@ -57,8 +57,8 @@ public class SpotDB extends BaseDB {
             + ", FOREIGN KEY (" + CATEGORY_ID_FIELD_NAME + ") REFERENCES " +CategoryDB.TABLE_NAME+ "("+CategoryDB.ID_FIELD_NAME+")";
 
 	public static final String INSERT_TABLE_STATEMENT = CATEGORY_ID_FIELD_NAME
-            + ", " + LONGITUDE_FIELD_NAME
             + ", " + LATITUDE_FIELD_NAME
+            + ", " + LONGITUDE_FIELD_NAME
             + ", " + NAME_FIELD_NAME
             + ", " + ADDRESS_FIELD_NAME;
 
