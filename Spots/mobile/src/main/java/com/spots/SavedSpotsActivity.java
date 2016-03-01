@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.spots.data.database.CategoryDB;
+import com.spots.data.database.SpotDB;
 import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
@@ -28,6 +29,7 @@ public class SavedSpotsActivity extends AppCompatActivity {
 
     private static String TAG = "SAVED_SPOTS_ACTIVITY";
     private FragmentPagerAdapter adapterViewPager;
+    private Context mCtx;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +44,7 @@ public class SavedSpotsActivity extends AppCompatActivity {
         }
     }
 
-    public void openBottomSheet(View v, final String elementTitle, final double elementLatitude, final double elementLongitude) {
+    public void openBottomSheet(View v, final String elementTitle, final int id,final double elementLatitude, final double elementLongitude) {
         View view = getLayoutInflater().inflate (R.layout.bottom_sheet, null);
         TextView txtBackup = (TextView)view.findViewById( R.id.txt_backup);
         TextView txtDetail = (TextView)view.findViewById( R.id.txt_detail);
@@ -96,6 +98,9 @@ public class SavedSpotsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(), "Clicked Delete Spot", Toast.LENGTH_SHORT).show();
+                SpotDB spotDatabase = new SpotDB(mCtx);
+                spotDatabase.removeWithId(id);
+                //Log.d("database updated:", spotDatabase.getAll().toString());
                 mBottomSheetDialog.dismiss();
             }
         });

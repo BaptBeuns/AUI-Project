@@ -17,17 +17,19 @@ public class SpotListAdapter extends BaseAdapter {
     private Activity activity;
     String [] titleResult;
     String [] detailResult;
+    int[] idResult;
     double [] latitudeResult;
     double [] longitudeResult;
     Context context;
     int [] imageId;
     private static LayoutInflater inflater=null;
 
-    public SpotListAdapter(Activity _activity, Context savedPlaces, String[] prgmTitleList, String[] prgmDetailList, double[]prgmLatitudeList, double[] prgmLongitudeList, int[] prgmImages) {
+    public SpotListAdapter(Activity _activity, Context savedPlaces, String[] prgmTitleList, String[] prgmDetailList, int[] prgrmIdList, double[]prgmLatitudeList, double[] prgmLongitudeList, int[] prgmImages) {
         // TODO Auto-generated constructor stub
         activity = _activity;
         titleResult=prgmTitleList;
         detailResult=prgmDetailList;
+        idResult=prgrmIdList;
         latitudeResult=prgmLatitudeList;
         longitudeResult=prgmLongitudeList;
         context=savedPlaces;
@@ -74,7 +76,7 @@ public class SpotListAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 if(context instanceof SavedSpotsActivity){
-                    ((SavedSpotsActivity)context).openBottomSheet(v, titleResult[position], latitudeResult[position], longitudeResult[position]);
+                    ((SavedSpotsActivity)context).openBottomSheet(v, titleResult[position], idResult[position], latitudeResult[position], longitudeResult[position]);
 //                    Toast.makeText(context, "You Clicked "+titleResult[position], Toast.LENGTH_LONG).show();
                     lastSelectedSpotIndex=position;
                 }

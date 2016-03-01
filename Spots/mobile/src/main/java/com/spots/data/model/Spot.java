@@ -67,7 +67,9 @@ public class Spot {
 		this.filterNotifyEvening = filter;
 	}
 
-    public int getCategoryId() {return this.categoryId;} ;
+	public int getId() {return this.id;};
+
+	public int getCategoryId() {return this.categoryId;} ;
 
     public double getLatitude() {
         return this.latitude;
@@ -96,5 +98,6 @@ public class Spot {
     public boolean getFilterEvening() {
         return this.filterNotifyEvening;
     }
+
 
 }
