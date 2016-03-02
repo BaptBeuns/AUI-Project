@@ -2,13 +2,17 @@ package com.spots;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
@@ -53,6 +57,10 @@ public class MainActivity extends Activity implements DataApi.DataListener,
 
     // HANDLED COMMUNICATION
     private static final String ADD_SPOT_PATH = "/add_spot";
+    private static final String REQUEST_CATEGORIES_PATH = "/request_categories";
+
+    // MODEL VARIABLES
+    private String[]categoryName = {"Eat","Drink"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +68,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         setContentView(R.layout.activity_main);
         PACKAGE_NAME = getPackageName();
         final Activity mainActivity = this;
+
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
@@ -76,13 +85,14 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             }
         });
 
+        initHandledReceiver();
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-
     }
 
     @Override
@@ -110,6 +120,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 
+        new SenderThread(REQUEST_CATEGORIES_PATH,categoryName.toString());
     }
 
     @Override
@@ -192,4 +203,29 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             }
         }
     }
+
+    /*
+    ***************************************************************************************************
+                                        HANDLED
+    ***************************************************************************************************
+    */
+
+    private void initHandledReceiver() {
+        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
+        MessageReceiver messageReceiver = new MessageReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
+    }
+
+    public class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            // Display message in UI
+            Toast.makeText(context, "Mobile Sent : "+message, Toast.LENGTH_LONG).show();
+            String delims = "[,]";
+            String[] params = message.split(delims);
+            Log.d(TAG,params[0]);
+        }
+    }
+
 }

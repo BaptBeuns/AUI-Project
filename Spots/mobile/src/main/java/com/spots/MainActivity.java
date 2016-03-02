@@ -21,6 +21,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,6 +61,7 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
+import com.spots.data.database.SpotDB;
 import com.spots.data.model.Spot;
 
 import org.apache.http.params.HttpConnectionParams;
@@ -120,9 +122,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationSettingsRequest mLocationSettingsRequest;
     private Location mCurrentLocation;
     private AddressResultReceiver mAddressResultReceiver;
+    private String mAddressOutput;
     private GoogleMap mMap;
     private Marker markerLocation;
-
 
     // KEYS FOR STORING ACTIVITY STATE IN THE BUNDLE
     protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
@@ -131,7 +133,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     // LAYOUT ACTIVITY's VARIABLES
     private LinearLayout    categoryLayout;
     private TextView        descriptionTextView;
+    private Button          addSpotButton;
     protected static int    TopBarHeight;
+
+    // CATEGORIES VARIABLES
+    private int categoryNumber;
+
+    // WEAR COMMUNICATION VARIABLES
+    private static final String CATEGORY_LIST_PATH = "/category_list";
 
   /*
     ***************************************************************************************************
@@ -157,35 +166,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         setupLocationRequest();
         buildLocationSettingsRequest();
         checkLocationSettings();
+        mAddressOutput = "";
 
         // HANDLE AND UPDATE LAYOUT
         setUpGooglePlaces();
         categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
         CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        categoryNumber = categoryDB.getAll().size();
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
+        addSpotButton = (Button) findViewById(R.id.add_spot_button);
+        addSpotButton.setEnabled(false);
 
         initWear();
-/*
-        Button addSpot = (Button) findViewById(R.id.add_spot_button);
-        addSpot.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditText tv = (EditText) findViewById(R.id.edit_spot_name);
-                String text = tv.getText().toString();
-                if (!TextUtils.isEmpty(text)) {
-                    sendMessage(WEAR_MESSAGE_PATH, text);
-                }
-            }
-        });*/
     }
 
-    public void addSpotClicked() {
+    public void addSpotClicked(View view) {
+        new SenderThread(CATEGORY_LIST_PATH,"Eat,Drink").start();
+        /*
         double latitude = 0, longitude = 0;
         String name;
         // On chope le nom du lieu dans la description
         TextView txt = (TextView) findViewById(R.id.edit_spot_name);
         name = txt.getText().toString();
-
 
         if (markerLocation != null) {
             Log.d("LOCATION", "Localisation issue de Google");
@@ -199,25 +202,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Location location = new Location("no use");
         location.setLatitude(latitude);
         location.setLongitude(longitude);
-        addSpot(location,name);
-    }
 
-    // Fonction appelée par le clic sur le bouton ADD SPOT
-    public void addSpot(Location location, String name) {
-        Spot spot = new Spot();
-
-        if (name.matches("")) {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            String textDate = dateFormat.format(date).toString();
-            name = "Spot added on " + textDate;
-        }
-        spot.setName(name);
-
-        spot.setLatitude(location.getLatitude());
-        spot.setLongitude(location.getLongitude());
-        spot.setAddress("");
-        spot.setCategoryId(1);
+        int categoryID = 1;
         // Get category
         /*
         ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
@@ -234,6 +220,36 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }*/
+        //addSpot(location,name,mAddressOutput,categoryID);
+
+    }
+
+    // Fonction appelée par le clic sur le bouton ADD SPOT
+    public void addSpot(Location location, String name, String address, int categoryID) {
+        Spot spot = new Spot();
+        SpotDB spotDB = new SpotDB(getApplicationContext());
+
+        if (name.matches("")) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            String textDate = dateFormat.format(date).toString();
+            name = "Spot added on " + textDate;
+        }
+        spot.setName(name);
+        if(location != null) {
+            spot.setLatitude(location.getLatitude());
+            spot.setLongitude(location.getLongitude());
+        } else
+            return;
+        if(address != null) {
+            spot.setAddress(address);
+        } else
+            spot.setAddress("");
+        if(categoryID>=0 && categoryID<categoryNumber) {
+            spot.setCategoryId(categoryID);
+        } else
+            spot.setCategoryId(0);
+        spotDB.insert(spot);
     }
 
     @Override
@@ -343,7 +359,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     .addApi(LocationServices.API)
                     .build();
         }
-
 
         // INDEX API CLIENT INIT
         indexAPIClient = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -481,6 +496,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 mRequestingLocationUpdates = true;
             }
         });
+        addSpotButton.setEnabled(true);
     }
 
 
@@ -584,8 +600,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
-            String mAddressOutput;
-
             if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
                 mAddressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
             } else { mAddressOutput = "Address not found"; }
@@ -672,36 +686,41 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(context, "Wear Sent : "+message, Toast.LENGTH_LONG).show();
             String delims = "[:]";
             String[] params = message.split(delims);
-            double latitude=Double.parseDouble(params[1]);
-            double longitude=Double.parseDouble(params[3]);
-            Location location = new Location("no use");
-            addSpot(location,"Wear");
+            if(params.length > 3) {
+                double latitude=Double.parseDouble(params[1]);
+                double longitude=Double.parseDouble(params[3]);
+                Location location = new Location("no use");
+                addSpot(location,"Wear","",0);
+            }
+            else
+                Log.d(TAG,"Error in location parse");
         }
     }
-    /*
 
-    private void sendMessage(final String path, final String text) {
+    public class SenderThread extends Thread {
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mWearableGoogleApiClient).await();
-                for (Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mWearableGoogleApiClient, node.getId(), path, text.getBytes()).await();
+        String path;
+        String message;
+
+        public SenderThread(String p, String msg) {
+            path = p;
+            message = msg;
+        }
+
+        public void run() {
+            Log.d(TAG,"Sender Thread for msg : "+message);
+            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mWearableGoogleApiClient).await();
+            for (Node node : nodes.getNodes()) {
+                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mWearableGoogleApiClient, node.getId(), path, message.getBytes()).await();
+                if (result.getStatus().isSuccess()) {
+                    Log.v(TAG, "Message: {" + message + "} sent to: " + node.getDisplayName());
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        EditText tv = (EditText) findViewById(R.id.edit_spot_name);
-                        tv.setText("Message Sent");
-                    }
-                });
+                else {
+                    // Log an error
+                    Log.v(TAG, "ERROR: failed to send Message");
+                }
             }
-        }).start();
-
+        }
     }
-    */
 
 }

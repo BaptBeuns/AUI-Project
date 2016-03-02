@@ -17,9 +17,9 @@ public class WearListenerService extends WearableListenerService {
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
+        Log.v(TAG, "Message path received on watch is: " + messageEvent.getPath());
         if (messageEvent.getPath().equals(ADD_SPOT_PATH)) {
             final String message = new String(messageEvent.getData());
-            Log.v(TAG, "Message path received on watch is: " + messageEvent.getPath());
             Log.v(TAG, "Message received on watch is: " + message);
 
             Intent messageIntent = new Intent();
