@@ -7,6 +7,36 @@
     tools:context="com.spots.MainActivity"
     tools:deviceIds="wear_round">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/main_color"
+        android:visibility="invisible"
+        android:id="@+id/spot_add_success">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Spot Added!"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/accent_color"
+        android:visibility="invisible"
+        android:id="@+id/update_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Updating Categories..."/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/classic_content">
         <TextView
             android:id="@+id/text"
             android:layout_width="match_parent"
@@ -45,5 +75,7 @@
             android:onClick="addSpot"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true" />
+    </RelativeLayout>
+
 
 </RelativeLayout>

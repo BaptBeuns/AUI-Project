@@ -15,16 +15,18 @@ public class HandledListenerService extends WearableListenerService {
 
     private String TAG = "SPOTS_LISTENER_SERVICE_WEAR_SIDE";
     private static final String CATEGORY_LIST_PATH = "/category_list";
+    private static final String SPOT_ADD_SUCCESS_PATH = "/spot_add_success";
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         Log.v(TAG, "Message path received on watch is: " + messageEvent.getPath());
-        if (messageEvent.getPath().equals(CATEGORY_LIST_PATH)) {
+        if (messageEvent.getPath().equals(CATEGORY_LIST_PATH) || messageEvent.getPath().equals(SPOT_ADD_SUCCESS_PATH)) {
             final String message = new String(messageEvent.getData());
             Log.v(TAG, "Message received on watch is: " + message);
 
             Intent messageIntent = new Intent();
             messageIntent.setAction(Intent.ACTION_SEND);
+            messageIntent.putExtra("path",messageEvent.getPath());
             messageIntent.putExtra("message", message);
             LocalBroadcastManager.getInstance(this).sendBroadcast(messageIntent);
         }

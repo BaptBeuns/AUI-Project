@@ -62,6 +62,7 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
 import com.spots.data.database.SpotDB;
+import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
 import org.apache.http.params.HttpConnectionParams;
@@ -71,7 +72,9 @@ import org.w3c.dom.Text;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /*
 
@@ -138,9 +141,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     // CATEGORIES VARIABLES
     private int categoryNumber;
+    private List<Category> inMemoryCategoryList;
+    private List<Category> wearCategoryList;
 
     // WEAR COMMUNICATION VARIABLES
     private static final String CATEGORY_LIST_PATH = "/category_list";
+    private static final String SPOT_ADD_SUCCESS_PATH = "/spot_add_success";
 
   /*
     ***************************************************************************************************
@@ -173,7 +179,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
         CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
         CategoryDB categoryDB = new CategoryDB(mCtx);
-        categoryNumber = categoryDB.getAll().size();
+        inMemoryCategoryList = categoryDB.getAll();
+        wearCategoryList = Collections.emptyList();
+        categoryNumber = inMemoryCategoryList.size();
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
         addSpotButton = (Button) findViewById(R.id.add_spot_button);
         addSpotButton.setEnabled(false);
@@ -182,8 +190,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void addSpotClicked(View view) {
-        new SenderThread(CATEGORY_LIST_PATH,"Eat,Drink").start();
-        /*
         double latitude = 0, longitude = 0;
         String name;
         // On chope le nom du lieu dans la description
@@ -220,7 +226,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }*/
-        //addSpot(location,name,mAddressOutput,categoryID);
+        addSpot(location,name,mAddressOutput,categoryID);
 
     }
 
@@ -682,19 +688,63 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("message");
+            String path = intent.getStringExtra("path");
             // Display message in UI
             Toast.makeText(context, "Wear Sent : "+message, Toast.LENGTH_LONG).show();
-            String delims = "[:]";
-            String[] params = message.split(delims);
-            if(params.length > 3) {
-                double latitude=Double.parseDouble(params[1]);
-                double longitude=Double.parseDouble(params[3]);
-                Location location = new Location("no use");
-                addSpot(location,"Wear","",0);
+
+            if(path.equals("/add_spot")) {
+                String delims = "[:]";
+                String[] params = message.split(delims);
+                if(params.length > 3) {
+                    double latitude=Double.parseDouble(params[1]);
+                    double longitude=Double.parseDouble(params[3]);
+                    Location location = new Location("no use");
+                    addSpot(location,"Added by Wear","",0);
+                    new SenderThread(SPOT_ADD_SUCCESS_PATH,"");
+                }
+                else
+                    Log.d(TAG,"Error in location parse");
             }
-            else
-                Log.d(TAG,"Error in location parse");
+            // WATCH SENT ITS CATEGORIES
+            else if (path.equals("/category_list")) {
+                wearCategoryList = Collections.emptyList();
+                String delim = "[;]";
+                String[] categories = message.split(delim);
+                // RETRIEVE WEAR'S DATA
+                for(String category : categories) {
+                    String delim2 = "[,]";
+                    String[] args = category.split(delim2);
+                    Category cat = new Category();
+                    cat.setName(args[0]);
+                    cat.setLogo(args[0]);
+                    wearCategoryList.add(cat);
+                }
+                // COMPARE IT WITH HANDLED'S ONE
+                int i = 0;
+                for(Category handledCat : inMemoryCategoryList) {
+                    if (wearCategoryList.get(i) != null) {
+                        Category wearCat = (Category)wearCategoryList.get(i);
+                        if(!wearCat.getName().equals(handledCat.getName()) || !wearCat.getLogo().equals(handledCat.getLogo())) {
+                            updateWearCategories();
+                            return;
+                        }
+                    } else {
+                        updateWearCategories();
+                        return;
+                    }
+                    i++;
+                }
+                new SenderThread(CATEGORY_LIST_PATH,"UTD");
+            }
         }
+    }
+
+    private void updateWearCategories() {
+        String categories = "";
+        for(Category cat:inMemoryCategoryList) {
+            categories = categories + cat.getName() + "," + cat.getLogo() + ";";
+        }
+        new SenderThread(CATEGORY_LIST_PATH,categories);
     }
 
     public class SenderThread extends Thread {

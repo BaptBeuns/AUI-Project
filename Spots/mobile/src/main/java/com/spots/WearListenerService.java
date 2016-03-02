@@ -13,17 +13,19 @@ import com.google.android.gms.wearable.WearableListenerService;
 public class WearListenerService extends WearableListenerService {
 
     private String TAG = "SPOTS_LISTENER_SERVICE_HANDLED_SIDE";
+    private static final String CATEGORY_LIST_PATH = "/category_list";
     private static final String ADD_SPOT_PATH = "/add_spot";
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         Log.v(TAG, "Message path received on watch is: " + messageEvent.getPath());
-        if (messageEvent.getPath().equals(ADD_SPOT_PATH)) {
+        if (messageEvent.getPath().equals(ADD_SPOT_PATH) || messageEvent.getPath().equals(CATEGORY_LIST_PATH)) {
             final String message = new String(messageEvent.getData());
             Log.v(TAG, "Message received on watch is: " + message);
 
             Intent messageIntent = new Intent();
             messageIntent.setAction(Intent.ACTION_SEND);
+            messageIntent.putExtra("path",messageEvent.getPath());
             messageIntent.putExtra("message", message);
             LocalBroadcastManager.getInstance(this).sendBroadcast(messageIntent);
         }

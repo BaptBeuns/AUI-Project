@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +34,10 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
+import com.spots.data.model.Category;
+
+import java.util.Collections;
+import java.util.List;
 
 
 public class MainActivity extends Activity implements DataApi.DataListener,
@@ -44,6 +49,9 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private Context mCtx;
 
     // LAYOUT VARIABLES
+    private RelativeLayout classicView;
+    private RelativeLayout addSpotView;
+    private RelativeLayout updateView;
     private TextView mTextView;
     public LinearLayout categoryLayout;
     private Button addSpotButton;
@@ -60,7 +68,8 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private static final String REQUEST_CATEGORIES_PATH = "/request_categories";
 
     // MODEL VARIABLES
-    private String[]categoryName = {"Eat","Drink"};
+    private List<Category> inMemoryCategoryList;
+    private List<Category> handledCategoryList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +82,9 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
+                classicView = (RelativeLayout) stub.findViewById(R.id.classic_content);
+                addSpotView = (RelativeLayout) stub.findViewById(R.id.spot_add_success);
+                updateView = (RelativeLayout) stub.findViewById(R.id.update_content);
                 mTextView = (TextView) stub.findViewById(R.id.text);
                 categoryLayout = (LinearLayout) stub.findViewById(R.id.categoryLayout);
                 addSpotButton = (Button) stub.findViewById(R.id.add_spot_button);
@@ -80,12 +92,14 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                 mCtx = getApplicationContext();
                 // We fill the list of categories with all our categories
                 CategoryDB catDB = new CategoryDB(mCtx);
+                inMemoryCategoryList = catDB.getAll();
                 catDB.fillCategoryList(mainActivity, mCtx, categoryLayout);
                 catDB.close();
             }
         });
 
         initHandledReceiver();
+        handledCategoryList = Collections.emptyList();
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -120,8 +134,9 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 
-        new SenderThread(REQUEST_CATEGORIES_PATH,categoryName.toString());
+        sendCurrentVersionDB();
     }
+
 
     @Override
     protected void onPause() {
@@ -133,6 +148,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
             mGoogleApiClient.disconnect();
         }
     }
+
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -178,6 +194,21 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     }
 
 
+
+
+    /*
+    ***************************************************************************************************
+                                        HANDLED
+    ***************************************************************************************************
+    */
+
+    private void initHandledReceiver() {
+        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
+        MessageReceiver messageReceiver = new MessageReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
+    }
+
+
     public class SenderThread extends Thread {
 
         String path;
@@ -204,27 +235,70 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         }
     }
 
-    /*
-    ***************************************************************************************************
-                                        HANDLED
-    ***************************************************************************************************
-    */
 
-    private void initHandledReceiver() {
-        IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
-        MessageReceiver messageReceiver = new MessageReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
+    private void sendCurrentVersionDB() {
+        String categories = "";
+        for(Category cat : inMemoryCategoryList) {
+            categories = categories + cat.getName() + "," + cat.getLogo() + ";";
+        }
+        new SenderThread(REQUEST_CATEGORIES_PATH,categories);
     }
+
 
     public class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String path = intent.getStringExtra("path");
             String message = intent.getStringExtra("message");
             // Display message in UI
-            Toast.makeText(context, "Mobile Sent : "+message, Toast.LENGTH_LONG).show();
-            String delims = "[,]";
-            String[] params = message.split(delims);
-            Log.d(TAG,params[0]);
+            if (path.equals("/category_list")) {
+                if(message.equals("UTD")) {
+                    Log.d(TAG, "Category List Up to Date");
+                    return;
+                } else {
+                    updateView.setVisibility(View.VISIBLE);
+                    classicView.setVisibility(View.INVISIBLE);
+                    handledCategoryList = Collections.emptyList();
+                    String delim = "[;]";
+                    String[] categories = message.split(delim);
+                    // REATRIEVE WEAR'S DATA
+                    for(String category : categories) {
+                        String delim2 = "[,]";
+                        String[] args = category.split(delim2);
+                        Category cat = new Category();
+                        cat.setName(args[0]);
+                        cat.setLogo(args[0]);
+                        handledCategoryList.add(cat);
+                    }
+                    int i = 0;
+                    CategoryDB catDB = new CategoryDB(mCtx);
+                    for(Category newCategory : handledCategoryList) {
+                        catDB.update(i,newCategory);
+                        i++;
+                    }
+                    inMemoryCategoryList = handledCategoryList;
+                    Runnable hide = new Runnable() {
+                        @Override
+                        public void run() {
+                            updateView.setVisibility(View.GONE);
+                            classicView.setVisibility(View.VISIBLE);
+                        }
+                    };
+                    updateView.postDelayed(hide,2000);
+                }
+            } else if (path.equals("/spot_add_success")) {
+                addSpotView.setVisibility(View.VISIBLE);
+                classicView.setVisibility(View.INVISIBLE);
+                Runnable hide = new Runnable() {
+                    @Override
+                    public void run() {
+                        addSpotView.setVisibility(View.GONE);
+                        classicView.setVisibility(View.VISIBLE);
+                    }
+                };
+                addSpotView.postDelayed(hide,2000);
+            }
+
         }
     }
 
