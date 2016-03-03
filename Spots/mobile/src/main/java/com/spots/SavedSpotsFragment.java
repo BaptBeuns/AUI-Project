@@ -61,7 +61,7 @@ public class SavedSpotsFragment extends Fragment {
     class SamplePagerAdapter extends PagerAdapter {
         List<Category> categoryList;
         List<Spot> spotList;
-        
+
         public SamplePagerAdapter() {
             CategoryDB catDB = new CategoryDB(mCtx);
             categoryList = catDB.getAll();
@@ -86,6 +86,7 @@ public class SavedSpotsFragment extends Fragment {
             }
             return categoryList.get(position - 1).getName();
         }
+
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
@@ -113,7 +114,10 @@ public class SavedSpotsFragment extends Fragment {
 
             String[] titlesArray    = new String[numberOfSpots];
             String[] addressesArray = new String[numberOfSpots];
-            int[] imagesArray       = new int[numberOfSpots];
+            int[] idsArray = new int[numberOfSpots];
+            double[] latitudesArray = new double[numberOfSpots];
+            double[] longitudesArray = new double[numberOfSpots];
+            int[] imagesArray  = new int[numberOfSpots];
 
             while((fillArrays < numberOfSpots)&&(spotInList < spotList.size())) {
                 Spot spot = spotList.get(spotInList);
@@ -122,6 +126,9 @@ public class SavedSpotsFragment extends Fragment {
                 if ((categoryId == position - 1)||(position == 0)) {
                     titlesArray[fillArrays] = spot.getName();
                     addressesArray[fillArrays] = spot.getAddress();
+                    idsArray[fillArrays] = spot.getId();
+                    latitudesArray[fillArrays] = spot.getLatitude();
+                    longitudesArray[fillArrays] = spot.getLongitude();
                     if (!((categoryId<=categoryList.size())&&(categoryId>=0))) {
                         categoryId = 0;
                     }
@@ -142,7 +149,7 @@ public class SavedSpotsFragment extends Fragment {
                 noSpot.setVisibility(View.INVISIBLE);
             }
 
-            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, addressesArray, imagesArray);
+            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, addressesArray, idsArray, latitudesArray, longitudesArray, imagesArray);
 
             listView.setAdapter(adapter);
 
