@@ -52,6 +52,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     private RelativeLayout classicView;
     private RelativeLayout addSpotView;
     private RelativeLayout updateView;
+    private RelativeLayout noDeviceView;
     private TextView mTextView;
     public LinearLayout categoryLayout;
     private Button addSpotButton;
@@ -66,6 +67,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
     // HANDLED COMMUNICATION
     private static final String ADD_SPOT_PATH = "/add_spot";
     private static final String REQUEST_CATEGORIES_PATH = "/request_categories";
+    private static final String CATEGORY_LIST_PATH = "/category_list";
 
     // MODEL VARIABLES
     private List<Category> inMemoryCategoryList;
@@ -85,6 +87,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                 classicView = (RelativeLayout) stub.findViewById(R.id.classic_content);
                 addSpotView = (RelativeLayout) stub.findViewById(R.id.spot_add_success);
                 updateView = (RelativeLayout) stub.findViewById(R.id.update_content);
+                noDeviceView = (RelativeLayout) stub.findViewById(R.id.no_device);
                 mTextView = (TextView) stub.findViewById(R.id.text);
                 categoryLayout = (LinearLayout) stub.findViewById(R.id.categoryLayout);
                 addSpotButton = (Button) stub.findViewById(R.id.add_spot_button);
@@ -97,6 +100,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
                 catDB.close();
             }
         });
+
 
         initHandledReceiver();
         handledCategoryList = Collections.emptyList();
@@ -221,9 +225,26 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         }
 
         public void run() {
+            Log.d(TAG,"Sender starts for path: "+path);
             NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
+            if (nodes.getNodes().size() <= 0) {
+                noDeviceView.setVisibility(View.VISIBLE);
+                classicView.setVisibility(View.INVISIBLE);
+                Runnable hide = new Runnable() {
+                    @Override
+                    public void run() {
+                        noDeviceView.setVisibility(View.GONE);
+                        classicView.setVisibility(View.VISIBLE);
+                    }
+                };
+                updateView.postDelayed(hide,2000);
+                return;
+            }
+            Log.d(TAG,nodes.getNodes().get(0).getDisplayName());
             for (Node node : nodes.getNodes()) {
                 MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), path, message.getBytes()).await();
+                Log.d(TAG,result.getStatus().getStatusMessage());
                 if (result.getStatus().isSuccess()) {
                     Log.v(TAG, "Message: {" + message + "} sent to: " + node.getDisplayName());
                 }
@@ -241,7 +262,7 @@ public class MainActivity extends Activity implements DataApi.DataListener,
         for(Category cat : inMemoryCategoryList) {
             categories = categories + cat.getName() + "," + cat.getLogo() + ";";
         }
-        new SenderThread(REQUEST_CATEGORIES_PATH,categories);
+        new SenderThread(CATEGORY_LIST_PATH,categories).start();
     }
 
 

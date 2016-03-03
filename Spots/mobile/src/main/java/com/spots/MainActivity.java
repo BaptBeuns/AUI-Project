@@ -9,14 +9,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -52,6 +59,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -67,13 +75,22 @@ import com.spots.data.model.Spot;
 
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /*
@@ -144,6 +161,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Category> inMemoryCategoryList;
     private List<Category> wearCategoryList;
 
+    // GOOGLE PLACES VARIABLES
+    private int firstUpdated = 0;
+    private List<LatLng> placesNearby;
+    private Bitmap nearbyPinBitmap;
+    private boolean placeSelected = false;
+
     // WEAR COMMUNICATION VARIABLES
     private static final String CATEGORY_LIST_PATH = "/category_list";
     private static final String SPOT_ADD_SUCCESS_PATH = "/spot_add_success";
@@ -180,12 +203,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
         CategoryDB categoryDB = new CategoryDB(mCtx);
         inMemoryCategoryList = categoryDB.getAll();
-        wearCategoryList = Collections.emptyList();
+        categoryDB.close();
+        wearCategoryList = new ArrayList<>();
         categoryNumber = inMemoryCategoryList.size();
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
         addSpotButton = (Button) findViewById(R.id.add_spot_button);
         addSpotButton.setEnabled(false);
 
+        placesNearby = new ArrayList<LatLng>();
+        setNearbyPin();
         initWear();
     }
 
@@ -196,7 +222,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         TextView txt = (TextView) findViewById(R.id.edit_spot_name);
         name = txt.getText().toString();
 
-        if (markerLocation != null) {
+        if (placeSelected) {
             Log.d("LOCATION", "Localisation issue de Google");
             longitude = markerLocation.getPosition().longitude;
             latitude = markerLocation.getPosition().latitude;
@@ -489,7 +515,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     protected void startLocationUpdates() {
-        Log.d(TAG,"startLocationUpdates");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             buildLocationSettingsRequest();
             return;
@@ -508,7 +533,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "onLocationChange : " + location.getLatitude());
         mCurrentLocation = location;
         if (mListener != null) {
             mListener.onLocationChanged(location);
@@ -516,7 +540,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if(mLocationGoogleApiClient.isConnected() && mCurrentLocation != null) {
             startIntentService();
         }
-        updateMapLayout(location);
+
+        if(firstUpdated == 0) {
+            StringBuilder sb = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+            sb.append("location="+mCurrentLocation.getLatitude()+","+mCurrentLocation.getLongitude());
+            sb.append("&radius=80");
+            sb.append("&sensor=true");
+            sb.append("&key=AIzaSyBAhBPWq4wUOxKSPbG9mEOb2nplEARqS6M");
+
+            // Creating a new non-ui thread task to download json data
+            PlacesTask placesTask = new PlacesTask();
+            placesTask.execute(sb.toString());
+        } else
+            updateMapLayout(location);
     }
 
     @Override
@@ -550,7 +586,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     private void setUpMap() {
-        Log.d(TAG, "setUpMap");
         if (mMap == null) {
             MapFragment mapFragment = (MapFragment) getFragmentManager()
                     .findFragmentById(R.id.map);
@@ -562,7 +597,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     // Triggered by getMapAsync
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.d(TAG, "onMapReady");
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             buildLocationSettingsRequest();
@@ -570,15 +604,44 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         googleMap.setMyLocationEnabled(true);
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                placeSelected = true;
+                markerLocation = marker;
+                String delim  = "[:]";
+                String[] params = marker.getTitle().split(delim);
+                descriptionTextView.setText(params[0]);
+                return true;
+            }
+        });
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener(){
+            @Override
+            public boolean onMyLocationButtonClick() {
+                descriptionTextView.setText(mAddressOutput);
+                placeSelected = false;
+                return false;
+            }
+        });
     }
 
 
     public void updateMapLayout(Location location) {
-        Log.d(TAG,"updateMapLayout");
         if (location != null) {
-            LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
-            if (!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
+            if (placesNearby != null) {
+                if(placesNearby.size() > 0 && firstUpdated == 0) {
+                    LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+                    for (LatLng latLng : placesNearby) {
+                        bounds.include(latLng);
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 10));
+                    }
+                    firstUpdated = 1;
+                }
+            } else {
+                LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
+                if (!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
+                }
             }
         }
     }
@@ -609,7 +672,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
                 mAddressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
             } else { mAddressOutput = "Address not found"; }
-            descriptionTextView.setText(mAddressOutput);
+            if (!placeSelected)
+                descriptionTextView.setText(mAddressOutput);
         }
     }
 
@@ -622,15 +686,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     private void setUpGooglePlaces() {
-        Log.d(TAG, "Set Up Google Places");
         // eventListener for the Place selector
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                Log.d(TAG, "On Place Selected");
                 // We fill the description with the name of the place
+                placeSelected = true;
                 descriptionTextView.setText(place.getName());
 
                 // We center the map on the selected place
@@ -640,8 +703,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 markerLocation = mMap.addMarker(new MarkerOptions()
                         .title((String) place.getName())
                         .snippet((String) place.getAddress())
-                        .position(place.getLatLng()));
-                Log.d(TAG, "New Marker : " + markerLocation.getTitle());
+                        .position(place.getLatLng())
+                        .icon(BitmapDescriptorFactory.fromBitmap(nearbyPinBitmap)));
             }
 
             @Override
@@ -657,6 +720,139 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     ***************************************************************************************************
      */
 
+    /** A method to download json data from url */
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try{
+            URL url = new URL(strUrl);
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            // Connecting to url
+            urlConnection.connect();
+
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+            StringBuffer sb  = new StringBuffer();
+
+            String line = "";
+            while( ( line = br.readLine())  != null){
+                sb.append(line);
+            }
+            data = sb.toString();
+
+            br.close();
+
+        }catch(Exception e){
+            Log.d("Exception dwnld url", e.toString());
+        }finally{
+            iStream.close();
+            urlConnection.disconnect();
+        }
+
+        return data;
+    }
+
+    /** A class, to download Google Places */
+    private class PlacesTask extends AsyncTask<String, Integer, String> {
+
+        String data = null;
+
+        // Invoked by execute() method of this object
+        @Override
+        protected String doInBackground(String... url) {
+            try{
+                data = downloadUrl(url[0]);
+            }catch(Exception e){
+                Log.d("Background Task",e.toString());
+            }
+            return data;
+        }
+
+        // Executed after the complete execution of doInBackground() method
+        @Override
+        protected void onPostExecute(String result){
+            ParserTask parserTask = new ParserTask();
+
+            // Start parsing the Google places in JSON format
+            // Invokes the "doInBackground()" method of the class ParseTask
+            parserTask.execute(result);
+        }
+
+    }
+
+    /** A class to parse the Google Places in JSON format */
+    private class ParserTask extends AsyncTask<String, Integer, List<HashMap<String,String>>>{
+
+        JSONObject jObject;
+
+        // Invoked by execute() method of this object
+        @Override
+        protected List<HashMap<String,String>> doInBackground(String... jsonData) {
+
+            List<HashMap<String, String>> places = null;
+            PlaceJSONParser placeJsonParser = new PlaceJSONParser();
+            try{
+                jObject = new JSONObject(jsonData[0]);
+
+                /** Getting the parsed data as a List construct */
+                places = placeJsonParser.parse(jObject);
+
+            }catch(Exception e){
+                Log.d("Exception",e.toString());
+            }
+            return places;
+        }
+
+        // Executed after the complete execution of doInBackground() method
+        @Override
+        protected void onPostExecute(List<HashMap<String,String>> list){
+
+            // Clears all the existing markers
+            //mMap.clear();
+            if(list == null) {
+                Log.d(TAG,"Null places list");
+                return;
+            }
+            if(placesNearby != null) {
+                placesNearby.clear();
+            }
+            for(int i=0;i<list.size();i++){
+                MarkerOptions markerOptions = new MarkerOptions();
+                HashMap<String, String> hmPlace = list.get(i);
+
+                double lat = Double.parseDouble(hmPlace.get("lat"));
+                double lng = Double.parseDouble(hmPlace.get("lng"));
+                String name = hmPlace.get("place_name");
+                String vicinity = hmPlace.get("vicinity");
+                LatLng latLng = new LatLng(lat, lng);
+                float[] distance = new float[2];
+                Location.distanceBetween(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude(),lat,lng,distance);
+                    if(distance[0] < 100) {
+                        placesNearby.add(latLng);
+                        markerOptions.position(latLng);
+                        markerOptions.title(name + " : " + vicinity);
+                        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(nearbyPinBitmap));
+                        mMap.addMarker(markerOptions);
+                    }
+            }
+            updateMapLayout(mCurrentLocation);
+        }
+    }
+
+
+    public void setNearbyPin() {
+        int width = getResources().getDimensionPixelSize(R.dimen.pin_width);
+        int height = getResources().getDimensionPixelSize(R.dimen.pin_height);
+        nearbyPinBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(nearbyPinBitmap);
+        Drawable shape = ContextCompat.getDrawable(this,R.drawable.pin);
+        shape.setBounds(0, 0, nearbyPinBitmap.getWidth(), nearbyPinBitmap.getHeight());
+        shape.draw(canvas);
+    }
 
     /*
     ***************************************************************************************************
@@ -706,22 +902,26 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Log.d(TAG,"Error in location parse");
             }
             // WATCH SENT ITS CATEGORIES
+            /*
             else if (path.equals("/category_list")) {
-                wearCategoryList = Collections.emptyList();
+                Log.d(TAG,"debug1");
+                wearCategoryList.clear();
                 String delim = "[;]";
                 String[] categories = message.split(delim);
                 // RETRIEVE WEAR'S DATA
                 for(String category : categories) {
+                    Log.d(TAG,"debug2");
                     String delim2 = "[,]";
                     String[] args = category.split(delim2);
                     Category cat = new Category();
                     cat.setName(args[0]);
-                    cat.setLogo(args[0]);
+                    cat.setLogo(args[1]);
                     wearCategoryList.add(cat);
                 }
                 // COMPARE IT WITH HANDLED'S ONE
                 int i = 0;
                 for(Category handledCat : inMemoryCategoryList) {
+                    Log.d(TAG,"debug3");
                     if (wearCategoryList.get(i) != null) {
                         Category wearCat = (Category)wearCategoryList.get(i);
                         if(!wearCat.getName().equals(handledCat.getName()) || !wearCat.getLogo().equals(handledCat.getLogo())) {
@@ -735,7 +935,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     i++;
                 }
                 new SenderThread(CATEGORY_LIST_PATH,"UTD");
-            }
+            }*/
         }
     }
 
