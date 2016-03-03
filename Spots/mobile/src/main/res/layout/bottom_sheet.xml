@@ -42,6 +42,4 @@
             android:text="Delete Spot"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
-
 </LinearLayout>

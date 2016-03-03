@@ -54,8 +54,7 @@ public class SavedSpotsFragment extends Fragment {
     }
 
     public void updateListView() {
-        CategoryDB categoryDatabase = new CategoryDB(mCtx);
-        List<Category> categoryList = categoryDatabase.getAll();
+        mViewPager.setAdapter(new SamplePagerAdapter());
     }
 
     class SamplePagerAdapter extends PagerAdapter {
@@ -114,6 +113,7 @@ public class SavedSpotsFragment extends Fragment {
 
             String[] titlesArray    = new String[numberOfSpots];
             String[] addressesArray = new String[numberOfSpots];
+            int[] idsArray = new int[numberOfSpots];
             double[] latitudesArray = new double[numberOfSpots];
             double[] longitudesArray = new double[numberOfSpots];
             int[] imagesArray  = new int[numberOfSpots];
@@ -125,6 +125,7 @@ public class SavedSpotsFragment extends Fragment {
                 if ((categoryId == position - 1)||(position == 0)) {
                     titlesArray[fillArrays] = spot.getName();
                     addressesArray[fillArrays] = spot.getAddress();
+                    idsArray[fillArrays] = spot.getId();
                     latitudesArray[fillArrays] = spot.getLatitude();
                     longitudesArray[fillArrays] = spot.getLongitude();
                     if (!((categoryId<=categoryList.size())&&(categoryId>=0))) {
@@ -147,7 +148,7 @@ public class SavedSpotsFragment extends Fragment {
                 noSpot.setVisibility(View.INVISIBLE);
             }
 
-            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, addressesArray, latitudesArray, longitudesArray, imagesArray);
+            SpotListAdapter adapter = new SpotListAdapter(getActivity(), mCtx, titlesArray, addressesArray, idsArray, latitudesArray, longitudesArray, imagesArray);
 
             listView.setAdapter(adapter);
 

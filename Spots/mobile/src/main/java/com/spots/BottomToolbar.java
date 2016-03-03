@@ -15,7 +15,7 @@ public class BottomToolbar extends Toolbar {
     private Context mCtx;
     private Button addActivityButton;
     private Button savedSpotsButton;
-    private Button exploreButton;
+    //private Button exploreButton;
 
     public BottomToolbar(Context context) {
         super(context);
@@ -38,22 +38,22 @@ public class BottomToolbar extends Toolbar {
         super.onFinishInflate();
         addActivityButton = (Button) findViewById(R.id.go_to_add_activity_button);
         savedSpotsButton = (Button) findViewById(R.id.go_to_saved_spots_activity_button);
-        exploreButton = (Button) findViewById(R.id.go_to_explore_activity_button);
+        //exploreButton = (Button) findViewById(R.id.go_to_explore_activity_button);
         addListenerOnButton();
 
         // SET STATES
         if (mCtx instanceof MainActivity) {
             addActivityButton.setSelected(true);
             savedSpotsButton.setSelected(false);
-            exploreButton.setSelected(false);
+            //exploreButton.setSelected(false);
         } else if (mCtx instanceof SavedSpotsActivity) {
             addActivityButton.setSelected(false);
             savedSpotsButton.setSelected(true);
-            exploreButton.setSelected(false);
+            //exploreButton.setSelected(false);
         } else {
             addActivityButton.setSelected(false);
             savedSpotsButton.setSelected(false);
-            exploreButton.setSelected(true);
+            //exploreButton.setSelected(true);
         }
     }
 
@@ -84,7 +84,7 @@ public class BottomToolbar extends Toolbar {
             }
 
         });
-
+/*
         exploreButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -96,6 +96,6 @@ public class BottomToolbar extends Toolbar {
             }
 
         });
-
+*/
     }
 }

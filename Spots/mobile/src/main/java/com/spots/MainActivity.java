@@ -84,11 +84,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -143,6 +141,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mCurrentLocation;
     private AddressResultReceiver mAddressResultReceiver;
     private String mAddressOutput;
+    private boolean alreadySetLocationAddress;
     private GoogleMap mMap;
     private Marker markerLocation;
 
@@ -157,6 +156,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected static int    TopBarHeight;
 
     // CATEGORIES VARIABLES
+    private CategoryListAdapter adapter;
     private int categoryNumber;
     private List<Category> inMemoryCategoryList;
     private List<Category> wearCategoryList;
@@ -196,16 +196,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         buildLocationSettingsRequest();
         checkLocationSettings();
         mAddressOutput = "";
+        alreadySetLocationAddress = false;
 
         // HANDLE AND UPDATE LAYOUT
         setUpGooglePlaces();
         categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
-        CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
         CategoryDB categoryDB = new CategoryDB(mCtx);
         inMemoryCategoryList = categoryDB.getAll();
         categoryDB.close();
         wearCategoryList = new ArrayList<>();
         categoryNumber = inMemoryCategoryList.size();
+
+        this.fillCategoryList(this, mCtx, categoryLayout);
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
         addSpotButton = (Button) findViewById(R.id.add_spot_button);
         addSpotButton.setEnabled(false);
@@ -216,8 +218,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void addSpotClicked(View view) {
+        int categoryId = 9;
         double latitude = 0, longitude = 0;
-        String name;
+        String name, address = "";
         // On chope le nom du lieu dans la description
         TextView txt = (TextView) findViewById(R.id.edit_spot_name);
         name = txt.getText().toString();
@@ -231,32 +234,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             longitude = mCurrentLocation.getLongitude();
             latitude = mCurrentLocation.getLatitude();
         }
+        if (adapter.lastSelectedSpotIndex != -1)
+            categoryId = adapter.lastSelectedSpotIndex;
+        if (mAddressOutput != null) {
+            address = mAddressOutput;
+        }
         Location location = new Location("no use");
         location.setLatitude(latitude);
         location.setLongitude(longitude);
-
-        int categoryID = 1;
-        // Get category
-        /*
-        ViewGroup vg = (ViewGroup) findViewById(R.id.layout_images);
-        ViewGroup nextChild;
-        View view;
-        // On assigne tous les enfants à pas selected
-        for (int i = 0; i < vg.getChildCount(); ++i) {
-            nextChild = (ViewGroup) vg.getChildAt(i);
-            if (nextChild.getChildCount() > 0) {
-                view = nextChild.getChildAt(0);
-                if (view.isSelected()) {
-                    spot.setCategoryId(i);
-                    break;
-                }
-            }
-        }*/
-        addSpot(location,name,mAddressOutput,categoryID);
-
+        addSpot(location, address, name, categoryId);
     }
 
-    // Fonction appelée par le clic sur le bouton ADD SPOT
+
     public void addSpot(Location location, String name, String address, int categoryID) {
         Spot spot = new Spot();
         SpotDB spotDB = new SpotDB(getApplicationContext());
@@ -282,7 +271,47 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         } else
             spot.setCategoryId(0);
         spotDB.insert(spot);
+
+        addSpotButton.setText("SPOT ADDED!");
+        addSpotButton.setBackgroundResource(R.drawable.spot_added_button);
+        addSpotButton.setEnabled(false);
+        Runnable hide = new Runnable() {
+            @Override
+            public void run() {
+                addSpotButton.setText("ADD SPOT");
+                addSpotButton.setBackgroundResource(R.drawable.add_button_selector);
+                addSpotButton.setEnabled(true);
+            }
+        };
+        addSpotButton.postDelayed(hide,3000);
     }
+
+
+    public void fillCategoryList(Activity act, Context mCtx, LinearLayout linearLayout) {
+        Category category;
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDB.getAll();
+        String[] namesArray = new String[categoryList.size()];
+        int[] imagesArray = new int[categoryList.size()];
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            category = categoryList.get(i);
+            namesArray[i] = category.getName();
+            imagesArray[i] = mCtx.getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
+        }
+
+        adapter = new CategoryListAdapter(act, mCtx, imagesArray, namesArray);
+
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            View item = adapter.getView(i, null, null);
+            linearLayout.addView(item);
+        }
+        categoryDB.close();
+    }
+
+
+
 
     @Override
     protected void onStart() {
@@ -672,8 +701,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
                 mAddressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
             } else { mAddressOutput = "Address not found"; }
-            if (!placeSelected)
+            if (!placeSelected && !alreadySetLocationAddress) {
                 descriptionTextView.setText(mAddressOutput);
+                alreadySetLocationAddress = true;
+            }
         }
     }
 
@@ -695,7 +726,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 // We fill the description with the name of the place
                 placeSelected = true;
                 descriptionTextView.setText(place.getName());
-
+                mAddressOutput = (String)place.getAddress();
                 // We center the map on the selected place
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 

@@ -6,8 +6,8 @@
         android:radius="25dp" />
     <stroke
         android:width="10px"
-        android:color="@color/light_grey" />
+        android:color="@color/dark_grey" />
     <solid
-        android:color="@color/main_color"
-        android:elevation="0dp"/>
+        android:color="@color/accent_color"
+        android:elevation="1dp"/>
 </shape>
