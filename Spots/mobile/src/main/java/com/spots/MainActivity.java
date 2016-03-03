@@ -60,6 +60,7 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
+import com.spots.data.model.Category;
 import com.spots.data.model.Spot;
 
 import org.apache.http.params.HttpConnectionParams;
@@ -70,6 +71,7 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /*
 
@@ -161,7 +163,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // HANDLE AND UPDATE LAYOUT
         setUpGooglePlaces();
         categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
-        CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
+        this.fillCategoryList(this, mCtx, categoryLayout);
         descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
 
         initWear();
@@ -199,8 +201,52 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Location location = new Location("no use");
         location.setLatitude(latitude);
         location.setLongitude(longitude);
-        addSpot(location,name);
+        addSpot(location, name);
     }
+
+    //Bouton appelée par le clic sur l'une des categories
+    public void changeResource(View button) {
+        Log.d("ca marche", "oui");
+        ViewGroup vg = (ViewGroup) findViewById(R.id.categoryLayout);
+        ViewGroup nextChild;
+        View view;
+        // On assigne tous les enfants à pas selected
+        Log.d(TAG, Double.toString(vg.getChildCount()));
+        for(int i=0; i<vg.getChildCount(); ++i) {
+            nextChild = (ViewGroup) vg.getChildAt(i);
+            if (nextChild.getChildCount() > 0) {
+                view = nextChild.getChildAt(0);
+                view.setBackgroundResource(R.drawable.round_button);
+                view.setSelected(false);
+            }
+        }
+        button.setSelected(true);
+        button.setBackgroundResource(R.drawable.round_button_selected);
+    }
+
+    public static void fillCategoryList(Activity act, Context mCtx, LinearLayout linearLayout) {
+        Category category;
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDB.getAll();
+        String[] namesArray = new String[categoryList.size()];
+        int[] imagesArray = new int[categoryList.size()];
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            category = categoryList.get(i);
+            namesArray[i] = category.getName();
+            imagesArray[i] = mCtx.getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
+        }
+
+        CategoryListAdapter adapter = new CategoryListAdapter(act, mCtx, imagesArray, namesArray);
+
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            View item = adapter.getView(i, null, null);
+            linearLayout.addView(item);
+        }
+        categoryDB.close();
+    }
+
 
     // Fonction appelée par le clic sur le bouton ADD SPOT
     public void addSpot(Location location, String name) {

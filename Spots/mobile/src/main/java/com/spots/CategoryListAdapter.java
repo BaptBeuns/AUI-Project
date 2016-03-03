@@ -2,6 +2,7 @@ package com.spots;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,8 @@ public class CategoryListAdapter extends BaseAdapter {
     int [] categoryImages;
     String [] categoryNames;
     Context context;
+    private ImageView lastSelectedView;
+
     private static LayoutInflater inflater=null;
 
     public CategoryListAdapter(Activity _activity, Context savedPlaces, int[] categoryImgList, String[] categoryNameList) {
@@ -28,6 +31,7 @@ public class CategoryListAdapter extends BaseAdapter {
         categoryImages=categoryImgList;
         categoryNames=categoryNameList;
         context=savedPlaces;
+        lastSelectedView=new ImageView(context);
         inflater = ( LayoutInflater )context.
                 getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -52,22 +56,33 @@ public class CategoryListAdapter extends BaseAdapter {
         ImageView imgView;
     }
 
+    private void updateSelectedView(ImageView newSelectedView) {
+        if (lastSelectedView!=null){
+            lastSelectedView.setSelected(false);
+            lastSelectedView.setBackgroundResource(R.drawable.round_button);
+        }
+        newSelectedView.setSelected(true);
+        newSelectedView.setBackgroundResource(R.drawable.round_button_selected);
+        lastSelectedView=newSelectedView;
+    }
+
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, final View convertView, final ViewGroup parent) {
         // TODO Auto-generated method stub
-        Holder holder=new Holder();
+        final Holder holder=new Holder();
         View rowView;
         rowView = inflater.inflate(R.layout.category_listview, null);
         holder.nameTextView=(TextView) rowView.findViewById(R.id.categoryName);
         holder.imgView=(ImageView) rowView.findViewById(R.id.categoryImage);
         holder.nameTextView.setText(categoryNames[position]);
         holder.imgView.setImageResource(categoryImages[position]);
-        rowView.setOnClickListener(new View.OnClickListener() {
+        holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                lastSelectedSpotIndex=position;
-                Toast.makeText(context, "You Clicked "+categoryNames[position], Toast.LENGTH_LONG).show();
+                lastSelectedSpotIndex = position;
+                context.getApplicationContext();
+                updateSelectedView((ImageView) v);
             }
         });
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
