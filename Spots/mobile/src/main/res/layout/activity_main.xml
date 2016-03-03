@@ -1,179 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp"
-    android:paddingTop="0dp"
-    android:paddingBottom="0dp"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true"
+    tools:context="com.spots.MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:weightSum="20">
+        android:layout_height="match_parent">
 
-        <RelativeLayout
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:orientation="vertical"
+            android:weightSum="20"
             android:background="@color/light_grey"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:id="@+id/top_layout">
+            xmlns:android="http://schemas.android.com/apk/res/android">
 
-            <android.support.v7.widget.CardView
-                xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            <RelativeLayout android:background="@color/light_grey"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/edit_search_place">
-                <fragment
-                    android:id="@+id/place_autocomplete_fragment"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:id="@+id/top_layout">
+                <android.support.v7.widget.CardView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-                    />
-            </android.support.v7.widget.CardView>
-        </RelativeLayout>
+                    android:layout_height="match_parent"
+                    android:id="@+id/edit_search_place"
+                    app:cardBackgroundColor="@color/main_color">
+                    <fragment
+                        android:id="@+id/place_autocomplete_fragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                        />
+                </android.support.v7.widget.CardView>
+            </RelativeLayout>
 
-        <RelativeLayout
-            android:background="#2a86e2"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="8">
-
-            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-                class="com.google.android.gms.maps.MapFragment"
-                android:id="@+id/map"
+            <RelativeLayout
+                android:background="@color/light_grey"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="0dp"
+                android:layout_weight="8"
+                android:layout_marginTop="0dp"
+                android:id="@+id/map_layout">
+                <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                    class="com.google.android.gms.maps.MapFragment"
+                    android:id="@+id/map"
+                    android:background="@color/black"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                </fragment>
+            </RelativeLayout>
 
-        </RelativeLayout>
-        <RelativeLayout
-            android:background="@color/light_grey"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="10">
-            <TextView
-                android:id="@+id/spot_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:text="SPOT DESCRIPTION"
-                android:textColor="@color/dark_grey"
-                android:textSize="12sp"/>
-            <EditText
-                android:id="@+id/edit_spot_name"
-                android:background="@color/white"
-                android:gravity="center"
-                android:layout_width="300dp"
-                android:layout_height="50dp"
-                android:layout_below="@id/spot_description"
-                android:layout_centerHorizontal="true"
-                android:inputType="textShortMessage"
-                android:hint="Description"
-                android:textColorHint="#BBBBBB"
-                android:textColor="@color/black"
-                android:textSize="18sp"/>
             <LinearLayout
-                android:id="@+id/categoryList"
-                android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_below="@id/edit_spot_name"
-                android:orientation="horizontal"
-                android:weightSum="5"
-                android:divider="#6cbccc"
-                android:dividerHeight="1dp" >
-                <RelativeLayout
-                    android:layout_weight="1"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/edit_spot_name"
+                    android:background="@color/white"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:inputType="textShortMessage"
+                    android:hint="Description"
+                    android:textColorHint="#BBBBBB"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"/>
+                <HorizontalScrollView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <ImageView
-                        android:id="@+id/category_image_1"
+                    <LinearLayout
+                        android:id="@+id/categoryLayout"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                    <TextView
-                        android:id="@+id/cat1"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT1"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat2"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT2"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat3"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT3"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:id="@+id/cat4"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="CAT4"/>
-                </RelativeLayout>
-                <RelativeLayout
-                    android:id="@+id/catmore"
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="More"/>
-                </RelativeLayout>
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+
+                <Button
+                    android:id="@+id/add_spot_button"
+                    android:layout_width="250dp"
+                    android:layout_gravity="center"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/add_button_selector"
+                    android:text="ADD SPOT"
+                    android:onClick="addSpot"
+                    android:elevation="0dp"
+                    android:textColor="@color/white">
+                </Button>
+
+
             </LinearLayout>
-            <Button
-                android:id="@+id/button"
-                android:layout_width="wrap_content"
-                android:paddingLeft="60dp"
-                android:paddingRight="60dp"
-                android:layout_height="60dp"
-                android:layout_marginBottom="15dp"
-                android:background="@drawable/add_button"
-                android:text="ADD SPOT"
-                android:elevation="0dp"
-                android:textColor="@color/white"
-                android:layout_centerHorizontal="true"
-                android:onClick="addTestSpots"
-                android:layout_alignParentBottom="true">
-            </Button>
 
-
-        </RelativeLayout>
+        </LinearLayout>
 
         <include
-            android:id="@+id/activity_bottom_toolbar"
-            layout="@layout/activity_bottom_toolbar"
-            />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            layout="@layout/bottom_toolbar"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 
-</LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>

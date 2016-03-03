@@ -1,10 +1,16 @@
 package com.spots.data.database;
 
+import com.spots.CategoryListAdapter;
+import com.spots.MainActivity;
+import com.spots.R;
 import com.spots.data.model.Category;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.view.View;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +19,7 @@ public class CategoryDB extends BaseDB {
 
 	public static final String TABLE_NAME = "CATEGORY";
 
-	private static final String ID_FIELD_NAME = "_ID";
+	protected static final String ID_FIELD_NAME = "_ID";
 	private static final String NAME_FIELD_NAME = "NAME";
 	private static final String LOGO_FIELD_NAME = "LOGO";
 
@@ -104,6 +110,30 @@ public class CategoryDB extends BaseDB {
         c.close();
 
         return category;
+    }
+
+
+    public static void fillCategoryList(Activity act, Context mCtx, LinearLayout linearLayout) {
+        Category category;
+        CategoryDB categoryDB = new CategoryDB(mCtx);
+        List<Category> categoryList = categoryDB.getAll();
+        String[] namesArray = new String[categoryList.size()];
+        int[] imagesArray = new int[categoryList.size()];
+
+        for (int i = 0; i < categoryList.size(); i++) {
+            category = categoryList.get(i);
+            namesArray[i] = category.getName();
+            imagesArray[i] = mCtx.getResources().getIdentifier(category.getLogo(), "drawable", MainActivity.PACKAGE_NAME);
+        }
+
+        CategoryListAdapter adapter = new CategoryListAdapter(act, mCtx, imagesArray, namesArray);
+
+        final int adapterCount = adapter.getCount();
+        for (int i = 0; i < adapterCount; i++) {
+            View item = adapter.getView(i, null, null);
+            linearLayout.addView(item);
+        }
+        categoryDB.close();
     }
 
 }

@@ -1,249 +1,616 @@
 package com.spots;
 
 import android.Manifest;
-import android.app.ActionBar;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Handler;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.places.AddPlaceRequest;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
 import com.spots.data.database.CategoryDB;
-import com.spots.data.database.SpotDB;
-import com.spots.data.model.Category;
-import com.spots.data.model.Spot;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.w3c.dom.Text;
 
+import java.net.URLEncoder;
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback, OnConnectionFailedListener {
+/*
 
-    private Context mCtx;
-    private GoogleApiClient mGoogleApiClient;
+FILE ORGANISATION
+
+1. VARIABLES
+2. ACTIVITY LIFECYCLE
+3. RETRIEVE SETTINGS
+4. BUILD CONNECT AND DISCONNECT GOOGLE API CLIENTS
+5. LOCATION REQUEST
+6. LOCATION MANAGEMENT
+7. MAP
+8. GEOCODER
+9. GOOGLE PLACES
+10. PLACE PICKER
+11. STORE SETTINGS
+12. WEAR
+
+*/
+
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback,
+        ConnectionCallbacks, OnConnectionFailedListener,
+        LocationListener, LocationSource, ResultCallback<LocationSettingsResult> {
+
+    //TODO : GET 10 OR 20 MARKERS AROUNDS TO MAKE A FITBOUNDS ON MAP OPENING
+    // + DISPLAY CURRENT ADDRESS
+    // + COMMUNICATION WEAR
+
+    // GLOBAL ACTIVITY's VARIABLES
+    private String TAG = "MOBILE_MAIN_ACTIVITY";
+    private static final String START_ACTIVITY = "/main_activity";
+    private static final String WEAR_MESSAGE_PATH = "/message";
+    public static String PACKAGE_NAME;
+
+    // LOCATION AND MAP RELATED VARIABLES
+    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
+
+    private GoogleApiClient mWearableGoogleApiClient;
+    private GoogleApiClient mLocationGoogleApiClient;
+    private GoogleApiClient mGooglePlaceApiClient;
+    private GoogleApiClient indexAPIClient;
+    protected Boolean mRequestingLocationUpdates;
+    private LocationRequest mLocationRequest;
+    private OnLocationChangedListener mListener;
+    private LocationSettingsRequest mLocationSettingsRequest;
+    private Location mCurrentLocation;
+    private AddressResultReceiver mAddressResultReceiver;
     private GoogleMap mMap;
 
-    //private BottomToolbar toolbar;
 
-    @Override
-    public void onMapReady(GoogleMap map) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            map.setMyLocationEnabled(true);
-            return;
-        }
-        mMap = map;
-    }
+    // KEYS FOR STORING ACTIVITY STATE IN THE BUNDLE
+    protected final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
+    protected final static String KEY_LOCATION = "location";
 
-    public void onConnectionFailed (ConnectionResult result) {
-        Log.d("MAIN ACTIVITY","Connetion Failed");
-    }
+    // LAYOUT ACTIVITY's VARIABLES
+    private LinearLayout    categoryLayout;
+    private TextView        descriptionTextView;
+    protected static int    TopBarHeight;
+
+  /*
+    ***************************************************************************************************
+                                        ACTIVITY LIFECYCLE
+    ***************************************************************************************************
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mCtx = this;
+        Context mCtx = getApplicationContext();
+        PACKAGE_NAME = mCtx.getPackageName();
 
-        // Gere la carte
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        // UPDATE SETTINGS FROM BUNDLE
+        updateValuesFromBundle(savedInstanceState);
 
-        // Crée une entité de Google API pour pouvoir faire des requêtes à Google Place
-        mGoogleApiClient = new GoogleApiClient
+        // BUILD, CONNECT AND DISCONNECT GOOGLE API CLIENTS
+        mRequestingLocationUpdates = false;
+        buildGoogleApiClient();
+
+        // SET AND START LOCATION REQUESTS
+        setupLocationRequest();
+        buildLocationSettingsRequest();
+        checkLocationSettings();
+
+        // HANDLE AND UPDATE LAYOUT
+        setUpGooglePlaces();
+        categoryLayout = (LinearLayout) findViewById(R.id.categoryLayout);
+        CategoryDB.fillCategoryList(this, mCtx, categoryLayout);
+        descriptionTextView = (TextView) findViewById(R.id.edit_spot_name);
+/*
+        Button addSpot = (Button) findViewById(R.id.add_spot_button);
+        addSpot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText tv = (EditText) findViewById(R.id.edit_spot_name);
+                String text = tv.getText().toString();
+                if (!TextUtils.isEmpty(text)) {
+                    sendMessage(WEAR_MESSAGE_PATH, text);
+                }
+            }
+        });*/
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mLocationGoogleApiClient.connect();
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setUpMap();
+        if (mLocationGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mLocationGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
+    }
+
+
+    @Override
+    protected void onStop() {
+        mLocationGoogleApiClient.disconnect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.spots/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(indexAPIClient, viewAction);
+        indexAPIClient.disconnect();
+        super.onStop();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+
+
+    /*
+    ***************************************************************************************************
+                                        RETRIEVE SETTINGS
+    ***************************************************************************************************
+     */
+
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
+            // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
+            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        KEY_REQUESTING_LOCATION_UPDATES);
+            }
+            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
+            // correct latitude and longitude.
+            if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
+                // Since KEY_LOCATION was found in the Bundle, we can be sure that mCurrentLocation
+                // is not null.
+                mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+            }
+            updateMapLayout(mCurrentLocation);
+        }
+    }
+
+
+    /*
+    ***************************************************************************************************
+                                BUILD CONNECT AND DISCONNECT GOOGLE API CLIENTS
+    ***************************************************************************************************
+     */
+
+    private void buildGoogleApiClient() {
+        mWearableGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .build();
+        mWearableGoogleApiClient.connect();
+
+        // GOOGLE PLACES API CLIENT INIT
+        mGooglePlaceApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .enableAutoManage(this, this)
                 .build();
+        mGooglePlaceApiClient.connect();
 
-        // EventListener pour le Place selector
+        // LOCATION API CLIENT INIT
+        if (mLocationGoogleApiClient == null) {
+            mLocationGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+
+
+        // INDEX API CLIENT INIT
+        indexAPIClient = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        indexAPIClient.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.spots/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(indexAPIClient, viewAction);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        if (mCurrentLocation == null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                buildLocationSettingsRequest();
+                return;
+            }
+            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mLocationGoogleApiClient);
+            startLocationUpdates();
+        }
+    }
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "Connection suspended");
+    }
+
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+    }
+
+
+    /*
+    ***************************************************************************************************
+                                            LOCATION REQUEST
+    ***************************************************************************************************
+     */
+
+    protected void checkLocationSettings() {
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(
+                        mLocationGoogleApiClient,
+                        mLocationSettingsRequest
+                );
+        result.setResultCallback(this);
+    }
+
+
+    protected void setupLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+
+    protected void buildLocationSettingsRequest() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(mLocationRequest);
+        mLocationSettingsRequest = builder.build();
+    }
+
+
+    @Override
+    public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+        final Status status = locationSettingsResult.getStatus();
+        switch (status.getStatusCode()) {
+            case LocationSettingsStatusCodes.SUCCESS:
+                Log.i(TAG, "All location settings are satisfied.");
+                startLocationUpdates();
+                break;
+            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                Log.i(TAG, "Location settings are not satisfied. Show the user a dialog to" +
+                        "upgrade location settings ");
+                try {
+                    status.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                } catch (IntentSender.SendIntentException e) {
+                    Log.i(TAG, "PendingIntent unable to execute request.");
+                }
+                break;
+            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                Log.i(TAG, "Location settings are inadequate, and cannot be fixed here. Dialog " +
+                        "not created.");
+                break;
+        }
+    }
+
+    // Triggered when user's comes back from settings : after startResolutionForResult
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            // Check for the integer request code originally supplied to startResolutionForResult().
+            case REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        Log.i(TAG, "User agreed to make required location settings changes.");
+                        startLocationUpdates();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Log.i(TAG, "User chose not to make required location settings changes.");
+                        break;
+                }
+                break;
+        }
+    }
+
+
+    /*
+    ***************************************************************************************************
+                                                 LOCATION MANAGEMENT
+    ***************************************************************************************************
+     */
+
+    protected void startLocationUpdates() {
+        Log.d(TAG,"startLocationUpdates");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            buildLocationSettingsRequest();
+            return;
+        }
+        LocationServices.FusedLocationApi
+                .requestLocationUpdates(mLocationGoogleApiClient, mLocationRequest, this)
+                .setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(@NonNull Status status) {
+                mRequestingLocationUpdates = true;
+            }
+        });
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d(TAG, "onLocationChange : " + location.getLatitude());
+        mCurrentLocation = location;
+        if (mListener != null) {
+            mListener.onLocationChanged(location);
+        }
+        if(mLocationGoogleApiClient.isConnected() && mCurrentLocation != null) {
+            startIntentService();
+        }
+        updateMapLayout(location);
+    }
+
+    @Override
+    public void activate(OnLocationChangedListener listener) {
+        mListener = listener;
+    }
+
+    @Override
+    public void deactivate() {
+        mListener = null;
+    }
+
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mLocationGoogleApiClient,
+                (com.google.android.gms.location.LocationListener) this
+        ).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                mRequestingLocationUpdates = false;
+            }
+        });
+    }
+
+
+    /*
+    ***************************************************************************************************
+                                               MAP
+    ***************************************************************************************************
+     */
+
+    private void setUpMap() {
+        Log.d(TAG, "setUpMap");
+        if (mMap == null) {
+            MapFragment mapFragment = (MapFragment) getFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+
+    // Triggered by getMapAsync
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Log.d(TAG, "onMapReady");
+        mMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            buildLocationSettingsRequest();
+            return;
+        }
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        googleMap.setMyLocationEnabled(true);
+    }
+
+
+    public void updateMapLayout(Location location) {
+        Log.d(TAG,"updateMapLayout");
+        if (location != null) {
+            LatLngBounds bounds = this.mMap.getProjection().getVisibleRegion().latLngBounds;
+            if (!bounds.contains(new LatLng(location.getLatitude(), location.getLongitude()))) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
+            }
+        }
+    }
+
+    /*
+    ***************************************************************************************************
+                                   GEOCODER : FROM LOCATION TO ADDRESS
+    ***************************************************************************************************
+     */
+
+    protected void startIntentService() {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        mAddressResultReceiver = new AddressResultReceiver(new Handler());
+        intent.putExtra(FetchAddressIntentService.Constants.RECEIVER, mAddressResultReceiver);
+        intent.putExtra(FetchAddressIntentService.Constants.LOCATION_DATA_EXTRA, mCurrentLocation);
+        startService(intent);
+    }
+
+    @SuppressLint("ParcelCreator")
+    class AddressResultReceiver extends ResultReceiver {
+
+        private AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            String mAddressOutput;
+
+            if (resultCode == FetchAddressIntentService.Constants.SUCCESS_RESULT) {
+                mAddressOutput = resultData.getString(FetchAddressIntentService.Constants.RESULT_DATA_KEY);
+            } else { mAddressOutput = "Address not found"; }
+            descriptionTextView.setText(mAddressOutput);
+        }
+    }
+
+
+
+    /*
+    ***************************************************************************************************
+                                               GOOGLE PLACES
+    ***************************************************************************************************
+     */
+
+    private void setUpGooglePlaces() {
+        Log.d(TAG, "Set Up Google Places");
+        // eventListener for the Place selector
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-        getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // On remplit l'EditView avec le nom du lieu
-                TextView edit = (TextView) findViewById(R.id.edit_spot_name);
-                edit.setText(place.getName());
+                Log.d(TAG, "On Place Selected");
+                // We fill the description with the name of the place
+                descriptionTextView.setText(place.getName());
 
-                // On recentre la carte
+                // We center the map on the selected place
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17));
 
-                // On place un marker
-                Marker newMarker = mMap.addMarker(new MarkerOptions()
-                        .title((String)place.getName())
-                        .snippet((String)place.getAddress())
+                // We put a marker on it
+                final Marker marker = mMap.addMarker(new MarkerOptions()
+                        .title((String) place.getName())
+                        .snippet((String) place.getAddress())
                         .position(place.getLatLng()));
+                Log.d(TAG, "New Marker : " + marker.getTitle());
             }
 
             @Override
             public void onError(Status status) {
-                // TODO: Handle the error.
                 Log.i("GOOGLE PLACES", "An error occurred: " + status);
             }
         });
-
-        // Récupération des catégories à afficher
-        CategoryDB categoryDB = new CategoryDB(mCtx);
-        List<Category> catList = categoryDB.getAll();
-
-        String categoryName = catList.get(0).getName();
-        String categoryImage = catList.get(0).getLogo();
-        Log.d("Return from Database",categoryImage);
-        ImageView imageView = (ImageView)findViewById(R.id.category_image_1);
-        Log.d("Return from Database",getPackageName());
-        int resID = getResources().getIdentifier(categoryImage , "drawable", getPackageName());
-        Drawable drawable = getDrawable(resID );
-        imageView.setImageDrawable(drawable);
-        TextView txt = (TextView) findViewById(R.id.cat1);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(1).getName();
-        txt = (TextView) findViewById(R.id.cat2);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(2).getName();
-        txt = (TextView) findViewById(R.id.cat3);
-        txt.setText(categoryName);
-
-        categoryName = catList.get(3).getName();
-        txt = (TextView) findViewById(R.id.cat4);
-        txt.setText(categoryName);
-
     }
 
-    public void addTestSpots(View view) {
-        Spot duomo = new Spot();
-        duomo.setName("Duomo");
-        duomo.setLongitude(45.4640976);
-        duomo.setLatitude(9.191926500000022);
-        duomo.setAddress("Piazza del Duomo, Milano, Italy");
+    /*
+    ***************************************************************************************************
+                                        PLACE PICKER
+    ***************************************************************************************************
+     */
 
-        SpotDB spotDB = new SpotDB(mCtx);
-        spotDB.insert(duomo);
+
+    /*
+    ***************************************************************************************************
+                                        STORE SETTINGS
+    ***************************************************************************************************
+     */
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
+        savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
-    public void goToSaveSpots(View view) {
-        Intent intent = new Intent(this, SavedPlaces.class);
-        startActivity(intent);
-    }
-/*
-    public void startMap() {
-        // INIT MAP
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        ArrayList<LocationProvider> providers = new ArrayList<LocationProvider>();
-        ArrayList<String> names = (ArrayList)locationManager.getProviders(true);
 
-        for(String name : names)
-            providers.add(locationManager.getProvider(name));
 
-        Criteria critere = new Criteria();
-        critere.setAccuracy(Criteria.ACCURACY_FINE);
-        critere.setAltitudeRequired(false);
-        critere.setBearingRequired(true);
-        critere.setCostAllowed(false);
-        critere.setPowerRequirement(Criteria.POWER_HIGH);
-        critere.setSpeedRequired(false);
+    /*
+    ***************************************************************************************************
+                                        WEAR
+    ***************************************************************************************************
 
-        String provider = locationManager.getBestProvider(critere, true);
-        LocationListener locationListener = new LocationListener() {
+
+    private void sendMessage(final String path, final String text) {
+
+        new Thread(new Runnable() {
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d("chien", "ta mère");
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mWearableGoogleApiClient).await();
+                for (Node node : nodes.getNodes()) {
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                            mWearableGoogleApiClient, node.getId(), path, text.getBytes()).await();
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        EditText tv = (EditText) findViewById(R.id.edit_spot_name);
+                        tv.setText("Message Sent");
+                    }
+                });
             }
+        }).start();
 
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-
-            @Override
-            public void onLocationChanged(Location location) {
-                Log.d("GPS", "Latitude " + location.getLatitude() + " et longitude " + location.getLongitude());
-            }
-        };
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 90, locationListener);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            // Show rationale and request permission.
-        }
-
-    }*/
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void onClickButtonLeft(View view) {
-        ActionBar bottomToolbar = getActionBar();
-
-        /*
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);*/
-    }
+    */
 
 }
